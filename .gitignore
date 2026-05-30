@@ -57,4 +57,5 @@ next-env.d.ts
 # local files
 .vscode/*
 !.vscode/extensions.json
-
+!.vscode/launch.json
+!.vscode/tasks.json
