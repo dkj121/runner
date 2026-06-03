@@ -19,13 +19,9 @@
 ### 下载依赖
 
  `pnpm install //recommend~`
- 
  或
- 
  `npm install`
- 
  或
- 
  `yarn install`
 
 ### dev 模式启动
@@ -43,7 +39,7 @@
     ▲ Next.js 15.5.18 (Turbopack)
     - Local:        http://localhost:3000
     - Network:      http://172.22.32.1:3000
- 
+
   ✓ Starting...
   ✓ Ready in 7.3s
 
