@@ -60,36 +60,13 @@ if (!user) user = await db.create({ openid })
 // session_key 存后端，绝不下发给前端
 await redis.set(`ssk:${openid}`, session_key, 'EX', 7200)
 
-const token = jwt.sign({ uid: user._id }, SECRET, { expiresIn: '7d' })
+const token = jwt.sign({ uid: user._id }, SECRET)   // 不设 expiresIn，永不过期
 res.json({ code: 1, data: { token } })
 ```
 
-### 1.4 Token 过期无感刷新（跑步场景必要）
+### 1.4 Token 策略
 
-跑步中 token 过期不能踢回登录页，必须无感刷新：
-
-```javascript
-let isRefreshing = false
-let queue = []
-
-async function refreshToken() {
-  if (!isRefreshing) {
-    isRefreshing = true
-    try {
-      const { code } = await wx.login()
-      const { data } = await rawRequest('/auth/refresh', { code })
-      const newToken = data.token
-      getApp().setToken(newToken)
-      queue.forEach(resolve => resolve(newToken))
-      return newToken
-    } finally {
-      isRefreshing = false
-      queue = []
-    }
-  }
-  return new Promise(resolve => queue.push(resolve))
-}
-```
+个人主体小程序，无支付、无 `getPhoneNumber`，`session_key` 过期不碍事——**JWT 不设过期时间，一次登录永久有效，不需要刷新机制。**
 
 ---
 
@@ -247,11 +224,10 @@ wx.startLocationUpdateBackground({
 | # | 坑 | 正确做法 |
 |---|----|---------|
 | 1 | `wx.login` 设了 `timeout`，弱网超时 | **不设 timeout**，微信底层自带重试 |
-| 2 | code 复用导致 `40029 invalid code` | code **一次性**，刷新 token 要重新 `wx.login()` |
+| 2 | code 复用导致 `40029 invalid code` | code **一次性**，用完即焚 |
 | 3 | `session_key` 下发到前端 | **绝不下发**，只存后端 |
-| 4 | `getPhoneNumber` 在个人主体小程序无效 | 个人无此权限，用于手输 + 短信验证 |
+| 4 | `getPhoneNumber` 在个人主体小程序无效 | 个人无此权限，用手输 + 短信验证 |
 | 5 | 401 散落在各页面处理，有的漏了 | **request 拦截层统一处理**，一处跳转 |
-| 6 | 跑步中 token 过期弹出登录页 | 跑步中做**无感刷新**，禁止跳转 |
 
 ### 3.2 Map
 
