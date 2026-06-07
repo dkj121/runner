@@ -49,6 +49,12 @@
  或
  `yarn install`
 
+### .env
+
+ `cp .env.example .env`
+
+ 改为个人环境变量
+
 ### dev 模式启动
 
  `pnpm run dev`
@@ -67,5 +73,45 @@
 
   ✓ Starting...
   ✓ Ready in 7.3s
+
+```
+
+### 项目结构
+
+```markdown
+
+📂
+├── 📂 src                // 源代码
+│   ├── 📂 app            // app router 代码
+│   │   ├ ……
+│   │   └ 📂 api          // 向外调用 api
+│   ├── 📂 lib            // 库函数
+│   └── 📂 ui             // ui 组件库
+│
+├── 📂 public
+│
+├── 📂 prisma             // ORM 映射配置
+├── 📃 prisma.config.ts
+│
+├── 📃 .env.example       // 环境变量
+│
+├── 📃 tsconfig.json      // ts 配置
+│
+├── 📃 next.config.ts     // next.js 配置
+├── 📃 next-env.d.ts
+│
+├── 📃 eslint.config.mjs  // eslint 设置
+│
+├── 📃 postcss.config.mjs // css 配置
+│
+├── 📃 package.json       // 依赖管理
+├── 📃 pnpm-lock.yaml
+├── 📃 pnpm-workspace.yaml
+├── 📃 bun.lock
+│
+├── 📃 compose.debug.yaml // docker 部署
+├── 📃 compose.yaml
+├── 📃 Dockerfile
+└── 📃 .dockerignore
 
 ```
