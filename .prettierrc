@@ -1,6 +1,6 @@
 {
-  "tabWidth": 2,
-  "useTabs": true,
+	"tabWidth": 2,
+	"useTabs": true,
 	"plugins": ["prettier-plugin-tailwindcss"],
-	"tailwindStylesheet": "./src/ui/globals.css"
+	"tailwindStylesheet": "./src/app/globals.css"
 }
