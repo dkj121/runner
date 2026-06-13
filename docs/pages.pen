@@ -10,6 +10,7 @@
       "reusable": true,
       "width": 390,
       "height": 62,
+      "fill": "$bg-primary",
       "padding": [
         0,
         24
@@ -77,18 +78,27 @@
       "reusable": true,
       "width": 358,
       "height": 56,
-      "fill": "#1A1A1ACC",
+      "fill": "#121212E6",
       "cornerRadius": 28,
-      "effect": {
-        "type": "shadow",
-        "shadowType": "outer",
-        "color": "#00000040",
-        "offset": {
-          "x": 0,
-          "y": 4
+      "effect": [
+        {
+          "type": "shadow",
+          "shadowType": "outer",
+          "color": "#FF5F1F1A",
+          "blur": 20
         },
-        "blur": 12
-      },
+        {
+          "type": "shadow",
+          "shadowType": "outer",
+          "color": "#00000080",
+          "offset": {
+            "x": 0,
+            "y": 8
+          },
+          "blur": 32,
+          "spread": -4
+        }
+      ],
       "gap": 4,
       "padding": 6,
       "justifyContent": "space_around",
@@ -294,7 +304,7 @@
                   "id": "N8b0Zf",
                   "name": "Greeting Group",
                   "layout": "vertical",
-                  "gap": 2,
+                  "gap": 4,
                   "children": [
                     {
                       "type": "text",
@@ -326,6 +336,12 @@
                   "height": 44,
                   "fill": "$accent-primary",
                   "cornerRadius": 22,
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "color": "#FF5F1F40",
+                    "blur": 12
+                  },
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -357,6 +373,8 @@
                   "width": "fill_container",
                   "fill": "$bg-card",
                   "cornerRadius": 12,
+                  "stroke": "#FF5F1F1A",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 4,
                   "padding": 16,
@@ -376,7 +394,7 @@
                       "id": "QOcNm",
                       "name": "Stat Value",
                       "fill": "$accent-primary",
-                      "content": "128",
+                      "content": "127.4",
                       "fontFamily": "$font-heading",
                       "fontSize": 24,
                       "fontWeight": "700"
@@ -400,6 +418,8 @@
                   "width": "fill_container",
                   "fill": "$bg-card",
                   "cornerRadius": 12,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 4,
                   "padding": 16,
@@ -419,7 +439,7 @@
                       "id": "F2Oylu",
                       "name": "Stat Value",
                       "fill": "$text-primary",
-                      "content": "12.5",
+                      "content": "12.8",
                       "fontFamily": "$font-heading",
                       "fontSize": 24,
                       "fontWeight": "700"
@@ -443,6 +463,8 @@
                   "width": "fill_container",
                   "fill": "$bg-card",
                   "cornerRadius": 12,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 4,
                   "padding": 16,
@@ -462,7 +484,7 @@
                       "id": "D1mpo",
                       "name": "Stat Value",
                       "fill": "$text-primary",
-                      "content": "18",
+                      "content": "17",
                       "fontFamily": "$font-heading",
                       "fontSize": 24,
                       "fontWeight": "700"
@@ -478,43 +500,6 @@
                       "fontWeight": "normal"
                     }
                   ]
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "QwdBM",
-              "name": "Start Run Button",
-              "width": "fill_container",
-              "fill": "$accent-primary",
-              "cornerRadius": 16,
-              "gap": 10,
-              "padding": [
-                18,
-                0
-              ],
-              "justifyContent": "center",
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "UAMxF",
-                  "name": "Play Icon",
-                  "width": 20,
-                  "height": 20,
-                  "icon": "play",
-                  "library": "lucide",
-                  "fill": "#FFFFFFFF"
-                },
-                {
-                  "type": "text",
-                  "id": "GeBMM",
-                  "name": "Start Run Text",
-                  "fill": "#FFFFFFFF",
-                  "content": "开始跑步",
-                  "fontFamily": "$font-heading",
-                  "fontSize": 17,
-                  "fontWeight": "600"
                 }
               ]
             },
@@ -555,6 +540,8 @@
               "width": "fill_container",
               "fill": "$bg-card",
               "cornerRadius": 12,
+              "stroke": "$border-card",
+              "strokeWidth": 1,
               "gap": 14,
               "padding": 16,
               "alignItems": "center",
@@ -563,10 +550,10 @@
                   "type": "frame",
                   "id": "aytyk",
                   "name": "Time Indicator",
-                  "width": 4,
+                  "width": 3,
                   "height": 44,
                   "fill": "$accent-primary",
-                  "cornerRadius": 2,
+                  "cornerRadius": 3,
                   "layout": "vertical"
                 },
                 {
@@ -592,7 +579,7 @@
                       "id": "GoeDk",
                       "name": "Schedule Time",
                       "fill": "$text-secondary",
-                      "content": "今晚 19:30 · 预计 5 公里 · 6 人参加",
+                      "content": "今晚 19:30 · 约 5 公里 · 6 人参加",
                       "fontFamily": "$font-body",
                       "fontSize": 12,
                       "fontWeight": "normal"
@@ -638,6 +625,8 @@
               "width": "fill_container",
               "fill": "$bg-card",
               "cornerRadius": 12,
+              "stroke": "$border-card",
+              "strokeWidth": 1,
               "gap": 14,
               "padding": 16,
               "alignItems": "center",
@@ -655,7 +644,7 @@
                       "id": "PdDMd",
                       "name": "Recent Title",
                       "fill": "$text-primary",
-                      "content": "晨跑 5.2 公里",
+                      "content": "晨跑 5.23 公里",
                       "fontFamily": "$font-body",
                       "fontSize": 14,
                       "fontWeight": "600"
@@ -665,7 +654,7 @@
                       "id": "G4Y3z",
                       "name": "Recent Meta",
                       "fill": "$text-secondary",
-                      "content": "今天 06:30 · 配速 5'42\" · 消耗 320 卡",
+                      "content": "今天 06:37 · 配速 5'37\" · 消耗 318 卡",
                       "fontFamily": "$font-body",
                       "fontSize": 12,
                       "fontWeight": "normal"
@@ -681,6 +670,247 @@
                   "icon": "chevron-right",
                   "library": "lucide",
                   "fill": "$text-muted"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "VVVfa",
+              "name": "Quick Start Section",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "S8UrR",
+                  "name": "Solo Run Card",
+                  "width": "fill_container",
+                  "fill": "$bg-card",
+                  "cornerRadius": 14,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 14,
+                  "padding": 20,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "jxHMb",
+                      "name": "Solo Top",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "t6lFO1",
+                          "name": "Solo Icon BG",
+                          "width": 44,
+                          "height": 44,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 135,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "$accent-primary",
+                                "position": 0
+                              },
+                              {
+                                "color": "$accent-secondary",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 14,
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "color": "#FF5F1F40",
+                            "offset": {
+                              "x": 0,
+                              "y": 2
+                            },
+                            "blur": 16
+                          },
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "A3rV5",
+                              "name": "Solo Play Icon",
+                              "width": 20,
+                              "height": 20,
+                              "icon": "play",
+                              "library": "lucide",
+                              "fill": "#FFFFFFFF"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "icon",
+                          "id": "p6W2f",
+                          "name": "Solo Arrow",
+                          "width": 18,
+                          "height": 18,
+                          "icon": "arrow-right",
+                          "library": "lucide",
+                          "fill": "$accent-primary"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "zZ4pT",
+                      "name": "Solo Text",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ZYkVP",
+                          "name": "Solo Title",
+                          "fill": "$text-primary",
+                          "content": "个人跑步",
+                          "fontFamily": "$font-heading",
+                          "fontSize": 17,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "gM2HW",
+                          "name": "Solo Desc",
+                          "fill": "$text-secondary",
+                          "content": "自由奔跑 · 记录每一步",
+                          "fontFamily": "$font-body",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "G2RBYd",
+                  "name": "Group Run Card",
+                  "width": "fill_container",
+                  "fill": "$bg-card",
+                  "cornerRadius": 14,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 14,
+                  "padding": 20,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "KeVK7",
+                      "name": "Group Top",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "CXO1k",
+                          "name": "Group Icon BG",
+                          "width": 44,
+                          "height": 44,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 135,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#3B82F6",
+                                "position": 0
+                              },
+                              {
+                                "color": "#6366F1",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 14,
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "color": "#3B82F640",
+                            "offset": {
+                              "x": 0,
+                              "y": 2
+                            },
+                            "blur": 16
+                          },
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "wkrjw",
+                              "name": "Group Users Icon",
+                              "width": 20,
+                              "height": 20,
+                              "icon": "users",
+                              "library": "lucide",
+                              "fill": "#FFFFFFFF"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "icon",
+                          "id": "nw2M7",
+                          "name": "Group Arrow",
+                          "width": 18,
+                          "height": 18,
+                          "icon": "arrow-right",
+                          "library": "lucide",
+                          "fill": "$text-muted"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "EEofO",
+                      "name": "Group Text",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "X1S1iF",
+                          "name": "Group Title",
+                          "fill": "$text-primary",
+                          "content": "约跑",
+                          "fontFamily": "$font-heading",
+                          "fontSize": 17,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "eZjZg",
+                          "name": "Group Desc",
+                          "fill": "$text-secondary",
+                          "content": "创建或加入跑团 · 一起出发",
+                          "fontFamily": "$font-body",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
                 }
               ]
             }
@@ -761,7 +991,9 @@
               "name": "Tabs",
               "width": "fill_container",
               "fill": "$bg-card",
-              "cornerRadius": 10,
+              "cornerRadius": 12,
+              "stroke": "$border-card",
+              "strokeWidth": 1,
               "padding": 4,
               "children": [
                 {
@@ -769,8 +1001,26 @@
                   "id": "iZDFT",
                   "name": "Create Tab",
                   "width": "fill_container",
-                  "fill": "$accent-primary",
-                  "cornerRadius": 8,
+                  "fill": {
+                    "type": "gradient",
+                    "gradientType": "linear",
+                    "enabled": true,
+                    "rotation": 90,
+                    "size": {
+                      "height": 1
+                    },
+                    "colors": [
+                      {
+                        "color": "$accent-primary",
+                        "position": 0
+                      },
+                      {
+                        "color": "$accent-secondary",
+                        "position": 1
+                      }
+                    ]
+                  },
+                  "cornerRadius": 10,
                   "padding": [
                     10,
                     0
@@ -794,7 +1044,7 @@
                   "id": "Hdokh",
                   "name": "Join Tab",
                   "width": "fill_container",
-                  "cornerRadius": 8,
+                  "cornerRadius": 10,
                   "padding": [
                     10,
                     0
@@ -848,6 +1098,8 @@
                       "width": "fill_container",
                       "fill": "$bg-card",
                       "cornerRadius": 10,
+                      "stroke": "$border-card",
+                      "strokeWidth": 1,
                       "padding": [
                         14,
                         16
@@ -893,6 +1145,8 @@
                       "width": "fill_container",
                       "fill": "$bg-card",
                       "cornerRadius": 10,
+                      "stroke": "$border-card",
+                      "strokeWidth": 1,
                       "padding": [
                         14,
                         16
@@ -938,6 +1192,8 @@
                       "width": "fill_container",
                       "fill": "$bg-card",
                       "cornerRadius": 10,
+                      "stroke": "$border-card",
+                      "strokeWidth": 1,
                       "padding": [
                         14,
                         16
@@ -983,6 +1239,8 @@
                       "width": "fill_container",
                       "fill": "$bg-card",
                       "cornerRadius": 10,
+                      "stroke": "$border-card",
+                      "strokeWidth": 1,
                       "padding": [
                         14,
                         16
@@ -1010,8 +1268,37 @@
               "id": "QRXs3",
               "name": "Generate Button",
               "width": "fill_container",
-              "fill": "$accent-primary",
+              "height": 52,
+              "fill": {
+                "type": "gradient",
+                "gradientType": "linear",
+                "enabled": true,
+                "rotation": 90,
+                "size": {
+                  "height": 1
+                },
+                "colors": [
+                  {
+                    "color": "$accent-primary",
+                    "position": 0
+                  },
+                  {
+                    "color": "$accent-secondary",
+                    "position": 1
+                  }
+                ]
+              },
               "cornerRadius": 14,
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#FF5F1F40",
+                "offset": {
+                  "x": 0,
+                  "y": 4
+                },
+                "blur": 24
+              },
               "gap": 8,
               "padding": [
                 16,
@@ -1048,7 +1335,9 @@
               "name": "Code Section",
               "width": "fill_container",
               "fill": "$bg-card",
-              "cornerRadius": 12,
+              "cornerRadius": 14,
+              "stroke": "$border-card",
+              "strokeWidth": 1,
               "layout": "vertical",
               "gap": 12,
               "padding": 20,
@@ -1070,7 +1359,7 @@
                   "name": "Code Value",
                   "fill": "$accent-primary",
                   "content": "RUN-8K2M",
-                  "fontFamily": "Geist Mono",
+                  "fontFamily": "$font-mono",
                   "fontSize": 28,
                   "fontWeight": "700",
                   "letterSpacing": 4
@@ -1154,7 +1443,7 @@
               "name": "Code Input Section",
               "width": "fill_container",
               "layout": "vertical",
-              "gap": 16,
+              "gap": 20,
               "padding": [
                 32,
                 0
@@ -1165,8 +1454,8 @@
                   "type": "icon",
                   "id": "u9IA5J",
                   "name": "Users Icon",
-                  "width": 48,
-                  "height": 48,
+                  "width": 56,
+                  "height": 56,
                   "icon": "user-plus",
                   "library": "lucide",
                   "fill": "$accent-primary"
@@ -1187,7 +1476,9 @@
                   "name": "Code Input",
                   "width": 260,
                   "fill": "$bg-card",
-                  "cornerRadius": 12,
+                  "cornerRadius": 14,
+                  "stroke": "$accent-primary",
+                  "strokeWidth": 1.5,
                   "padding": [
                     14,
                     20
@@ -1212,8 +1503,37 @@
                   "id": "dDbdJ",
                   "name": "Join Button",
                   "width": 200,
-                  "fill": "$accent-primary",
+                  "height": 48,
+                  "fill": {
+                    "type": "gradient",
+                    "gradientType": "linear",
+                    "enabled": true,
+                    "rotation": 90,
+                    "size": {
+                      "height": 1
+                    },
+                    "colors": [
+                      {
+                        "color": "$accent-primary",
+                        "position": 0
+                      },
+                      {
+                        "color": "$accent-secondary",
+                        "position": 1
+                      }
+                    ]
+                  },
                   "cornerRadius": 14,
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "color": "#FF5F1F40",
+                    "offset": {
+                      "x": 0,
+                      "y": 4
+                    },
+                    "blur": 24
+                  },
                   "gap": 8,
                   "padding": [
                     14,
@@ -1296,7 +1616,9 @@
                   "name": "Domain Card",
                   "width": "fill_container",
                   "fill": "$bg-card",
-                  "cornerRadius": 10,
+                  "cornerRadius": 12,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
                   "gap": 12,
                   "padding": 16,
                   "alignItems": "center",
@@ -1349,7 +1671,9 @@
                   "name": "Domain Card",
                   "width": "fill_container",
                   "fill": "$bg-card",
-                  "cornerRadius": 10,
+                  "cornerRadius": 12,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
                   "gap": 12,
                   "padding": 16,
                   "alignItems": "center",
@@ -1402,7 +1726,9 @@
                   "name": "Domain Card",
                   "width": "fill_container",
                   "fill": "$bg-card",
-                  "cornerRadius": 10,
+                  "cornerRadius": 12,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
                   "gap": 12,
                   "padding": 16,
                   "alignItems": "center",
@@ -1528,7 +1854,9 @@
               "name": "Domain Info Card",
               "width": "fill_container",
               "fill": "$bg-card",
-              "cornerRadius": 12,
+              "cornerRadius": 14,
+              "stroke": "$border-card",
+              "strokeWidth": 1,
               "gap": 14,
               "padding": 18,
               "alignItems": "center",
@@ -1539,8 +1867,32 @@
                   "name": "Domain Icon",
                   "width": 48,
                   "height": 48,
-                  "fill": "$accent-primary",
-                  "cornerRadius": 12,
+                  "fill": {
+                    "type": "gradient",
+                    "gradientType": "linear",
+                    "enabled": true,
+                    "rotation": 135,
+                    "size": {
+                      "height": 1
+                    },
+                    "colors": [
+                      {
+                        "color": "$accent-primary",
+                        "position": 0
+                      },
+                      {
+                        "color": "$accent-secondary",
+                        "position": 1
+                      }
+                    ]
+                  },
+                  "cornerRadius": 14,
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "color": "#FF5F1F30",
+                    "blur": 8
+                  },
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -1594,7 +1946,7 @@
               "name": "Settings List",
               "width": "fill_container",
               "layout": "vertical",
-              "gap": 2,
+              "gap": 1,
               "children": [
                 {
                   "type": "frame",
@@ -1602,7 +1954,9 @@
                   "name": "Setting Row",
                   "width": "fill_container",
                   "fill": "$bg-card",
-                  "cornerRadius": 10,
+                  "cornerRadius": 12,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
                   "gap": 12,
                   "padding": [
                     14,
@@ -1668,7 +2022,7 @@
                   "name": "Setting Row",
                   "width": "fill_container",
                   "fill": "$bg-card",
-                  "cornerRadius": 10,
+                  "cornerRadius": 12,
                   "gap": 12,
                   "padding": [
                     14,
@@ -1734,7 +2088,7 @@
                   "name": "Setting Row",
                   "width": "fill_container",
                   "fill": "$bg-card",
-                  "cornerRadius": 10,
+                  "cornerRadius": 12,
                   "gap": 12,
                   "padding": [
                     14,
@@ -1800,7 +2154,7 @@
                   "name": "Setting Row",
                   "width": "fill_container",
                   "fill": "$bg-card",
-                  "cornerRadius": 10,
+                  "cornerRadius": 12,
                   "gap": 12,
                   "padding": [
                     14,
@@ -1866,7 +2220,7 @@
                   "name": "Setting Row",
                   "width": "fill_container",
                   "fill": "$bg-card",
-                  "cornerRadius": 10,
+                  "cornerRadius": 12,
                   "gap": 12,
                   "padding": [
                     14,
@@ -1932,7 +2286,7 @@
                   "name": "Setting Row",
                   "width": "fill_container",
                   "fill": "$bg-card",
-                  "cornerRadius": 10,
+                  "cornerRadius": 12,
                   "gap": 12,
                   "padding": [
                     14,
@@ -2000,7 +2354,9 @@
               "name": "Danger Section",
               "width": "fill_container",
               "fill": "$bg-card",
-              "cornerRadius": 10,
+              "cornerRadius": 12,
+              "stroke": "$danger",
+              "strokeWidth": 1,
               "layout": "vertical",
               "gap": 8,
               "padding": 16,
@@ -2010,7 +2366,7 @@
                   "type": "text",
                   "id": "I412O",
                   "name": "Danger Label",
-                  "fill": "#FF4444FF",
+                  "fill": "$danger",
                   "content": "解散域",
                   "fontFamily": "$font-body",
                   "fontSize": 14,
@@ -2073,10 +2429,23 @@
               "type": "frame",
               "id": "e3i56t",
               "name": "Map Area",
+              "metadata": {
+                "type": "unsplash",
+                "username": "filipephotographs",
+                "link": "https://unsplash.com/@filipephotographs",
+                "author": "Filipe Freitas"
+              },
               "width": "fill_container",
               "height": 240,
-              "fill": "$bg-card",
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "https://images.unsplash.com/photo-1676836442965-ebffc4b52472?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODExNTYzNTJ8&ixlib=rb-4.1.0&q=80&w=1080",
+                "mode": "fill"
+              },
               "cornerRadius": 16,
+              "stroke": "$border-card",
+              "strokeWidth": 1,
               "layout": "vertical",
               "justifyContent": "center",
               "alignItems": "center",
@@ -2124,17 +2493,18 @@
                       "id": "z7t18X",
                       "name": "Timer",
                       "fill": "$accent-primary",
-                      "content": "28:42",
+                      "content": "31:24",
                       "fontFamily": "Geist Mono",
                       "fontSize": 56,
-                      "fontWeight": "700"
+                      "fontWeight": "700",
+                      "letterSpacing": 2
                     },
                     {
                       "type": "text",
                       "id": "O2Au1y",
                       "name": "Timer Unit",
                       "fill": "$text-secondary",
-                      "content": "/ 30:00",
+                      "content": "/ 45:00",
                       "fontFamily": "$font-body",
                       "fontSize": 16,
                       "fontWeight": "normal"
@@ -2146,7 +2516,7 @@
                   "id": "qqcYU",
                   "name": "Distance",
                   "fill": "$text-primary",
-                  "content": "4.82 公里",
+                  "content": "5.47 公里",
                   "fontFamily": "$font-heading",
                   "fontSize": 32,
                   "fontWeight": "600"
@@ -2166,7 +2536,9 @@
                   "name": "Sub Stat Pace",
                   "width": "fill_container",
                   "fill": "$bg-card",
-                  "cornerRadius": 10,
+                  "cornerRadius": 12,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 2,
                   "padding": 14,
@@ -2177,7 +2549,7 @@
                       "id": "Lf64a",
                       "name": "Sub Value",
                       "fill": "$text-primary",
-                      "content": "5'42\"",
+                      "content": "5'43\"",
                       "fontFamily": "$font-heading",
                       "fontSize": 20,
                       "fontWeight": "600"
@@ -2200,7 +2572,9 @@
                   "name": "Sub Stat Heart",
                   "width": "fill_container",
                   "fill": "$bg-card",
-                  "cornerRadius": 10,
+                  "cornerRadius": 12,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 2,
                   "padding": 14,
@@ -2221,7 +2595,7 @@
                       "id": "EdfXf",
                       "name": "Sub Value",
                       "fill": "#FF4444FF",
-                      "content": "156",
+                      "content": "158",
                       "fontFamily": "$font-heading",
                       "fontSize": 20,
                       "fontWeight": "600"
@@ -2244,7 +2618,9 @@
                   "name": "Sub Stat Calories",
                   "width": "fill_container",
                   "fill": "$bg-card",
-                  "cornerRadius": 10,
+                  "cornerRadius": 12,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 2,
                   "padding": 14,
@@ -2255,7 +2631,7 @@
                       "id": "t2LC9",
                       "name": "Sub Value",
                       "fill": "$text-primary",
-                      "content": "298",
+                      "content": "312",
                       "fontFamily": "$font-heading",
                       "fontSize": 20,
                       "fontWeight": "600"
@@ -2290,6 +2666,8 @@
                   "height": 72,
                   "fill": "$bg-card",
                   "cornerRadius": 36,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -2311,8 +2689,36 @@
                   "name": "Stop Button",
                   "width": 88,
                   "height": 88,
-                  "fill": "$accent-primary",
+                  "fill": {
+                    "type": "gradient",
+                    "gradientType": "linear",
+                    "enabled": true,
+                    "rotation": 90,
+                    "size": {
+                      "height": 1
+                    },
+                    "colors": [
+                      {
+                        "color": "$accent-primary",
+                        "position": 0
+                      },
+                      {
+                        "color": "$accent-secondary",
+                        "position": 1
+                      }
+                    ]
+                  },
                   "cornerRadius": 44,
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "color": "#FF5F1F60",
+                    "offset": {
+                      "x": 0,
+                      "y": 4
+                    },
+                    "blur": 32
+                  },
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -2336,6 +2742,8 @@
                   "height": 72,
                   "fill": "$bg-card",
                   "cornerRadius": 36,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -2384,7 +2792,25 @@
                       "name": "Member Avatar",
                       "width": 40,
                       "height": 40,
-                      "fill": "$accent-primary",
+                      "fill": {
+                        "type": "gradient",
+                        "gradientType": "linear",
+                        "enabled": true,
+                        "rotation": 135,
+                        "size": {
+                          "height": 1
+                        },
+                        "colors": [
+                          {
+                            "color": "$accent-primary",
+                            "position": 0
+                          },
+                          {
+                            "color": "$accent-secondary",
+                            "position": 1
+                          }
+                        ]
+                      },
                       "cornerRadius": 20,
                       "justifyContent": "center",
                       "alignItems": "center",
@@ -2552,6 +2978,14 @@
               "width": "fill_container",
               "fill": "$bg-card",
               "cornerRadius": 16,
+              "stroke": "$accent-glow",
+              "strokeWidth": 1,
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#FF5F1F15",
+                "blur": 40
+              },
               "layout": "vertical",
               "gap": 8,
               "padding": 24,
@@ -2562,10 +2996,11 @@
                   "id": "rljkS",
                   "name": "Hero Distance",
                   "fill": "$accent-primary",
-                  "content": "5.20",
-                  "fontFamily": "$font-heading",
+                  "content": "5.23",
+                  "fontFamily": "$font-mono",
                   "fontSize": 48,
-                  "fontWeight": "700"
+                  "fontWeight": "700",
+                  "letterSpacing": -2
                 },
                 {
                   "type": "text",
@@ -2582,7 +3017,7 @@
                   "id": "GmSHq",
                   "name": "Hero Date",
                   "fill": "$text-muted",
-                  "content": "2024年6月5日 19:30 - 20:02",
+                  "content": "2024年6月5日 19:32 — 20:09",
                   "fontFamily": "$font-body",
                   "fontSize": 13,
                   "fontWeight": "normal"
@@ -2602,7 +3037,9 @@
                   "name": "Detail Box",
                   "width": "fill_container",
                   "fill": "$bg-card",
-                  "cornerRadius": 10,
+                  "cornerRadius": 12,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 2,
                   "padding": 12,
@@ -2613,7 +3050,7 @@
                       "id": "scPvw",
                       "name": "Detail Value",
                       "fill": "$text-primary",
-                      "content": "32:18",
+                      "content": "32:37",
                       "fontFamily": "$font-heading",
                       "fontSize": 18,
                       "fontWeight": "600"
@@ -2636,7 +3073,9 @@
                   "name": "Detail Box",
                   "width": "fill_container",
                   "fill": "$bg-card",
-                  "cornerRadius": 10,
+                  "cornerRadius": 12,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 2,
                   "padding": 12,
@@ -2647,7 +3086,7 @@
                       "id": "Eoqwv",
                       "name": "Detail Value",
                       "fill": "$accent-primary",
-                      "content": "6'13\"",
+                      "content": "6'14\"",
                       "fontFamily": "$font-heading",
                       "fontSize": 18,
                       "fontWeight": "600"
@@ -2670,7 +3109,9 @@
                   "name": "Detail Box",
                   "width": "fill_container",
                   "fill": "$bg-card",
-                  "cornerRadius": 10,
+                  "cornerRadius": 12,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 2,
                   "padding": 12,
@@ -2681,7 +3122,7 @@
                       "id": "r2X4GS",
                       "name": "Detail Value",
                       "fill": "$text-primary",
-                      "content": "342",
+                      "content": "344",
                       "fontFamily": "$font-heading",
                       "fontSize": 18,
                       "fontWeight": "600"
@@ -2704,7 +3145,9 @@
                   "name": "Detail Box",
                   "width": "fill_container",
                   "fill": "$bg-card",
-                  "cornerRadius": 10,
+                  "cornerRadius": 12,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 2,
                   "padding": 12,
@@ -2715,7 +3158,7 @@
                       "id": "l1Rd5",
                       "name": "Detail Value",
                       "fill": "$text-primary",
-                      "content": "172",
+                      "content": "173",
                       "fontFamily": "$font-heading",
                       "fontSize": 18,
                       "fontWeight": "600"
@@ -2740,7 +3183,9 @@
               "name": "Chart Section",
               "width": "fill_container",
               "fill": "$bg-card",
-              "cornerRadius": 12,
+              "cornerRadius": 14,
+              "stroke": "$border-card",
+              "strokeWidth": 1,
               "layout": "vertical",
               "gap": 12,
               "padding": 16,
@@ -2811,7 +3256,7 @@
                           "width": 28,
                           "height": 56,
                           "fill": "$accent-primary",
-                          "cornerRadius": 4
+                          "cornerRadius": 6
                         },
                         {
                           "type": "text",
@@ -2852,7 +3297,7 @@
                           "width": 28,
                           "height": 64,
                           "fill": "$accent-secondary",
-                          "cornerRadius": 4
+                          "cornerRadius": 6
                         },
                         {
                           "type": "text",
@@ -2893,7 +3338,7 @@
                           "width": 28,
                           "height": 68,
                           "fill": "$accent-secondary",
-                          "cornerRadius": 4
+                          "cornerRadius": 6
                         },
                         {
                           "type": "text",
@@ -2934,7 +3379,7 @@
                           "width": 28,
                           "height": 60,
                           "fill": "$accent-primary",
-                          "cornerRadius": 4
+                          "cornerRadius": 6
                         },
                         {
                           "type": "text",
@@ -2975,7 +3420,7 @@
                           "width": 28,
                           "height": 72,
                           "fill": "$accent-secondary",
-                          "cornerRadius": 4
+                          "cornerRadius": 6
                         },
                         {
                           "type": "text",
@@ -3017,7 +3462,9 @@
                   "name": "Split Table",
                   "width": "fill_container",
                   "fill": "$bg-card",
-                  "cornerRadius": 10,
+                  "cornerRadius": 12,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "children": [
                     {
@@ -3602,7 +4049,7 @@
               "id": "nXvHt",
               "name": "Week Strip",
               "width": "fill_container",
-              "gap": 8,
+              "gap": 10,
               "justifyContent": "space_between",
               "children": [
                 {
@@ -3682,8 +4129,26 @@
                   "id": "tYsTR",
                   "name": "Day Column",
                   "width": 36,
-                  "fill": "$accent-primary",
-                  "cornerRadius": 12,
+                  "fill": {
+                    "type": "gradient",
+                    "gradientType": "linear",
+                    "enabled": true,
+                    "rotation": 135,
+                    "size": {
+                      "height": 1
+                    },
+                    "colors": [
+                      {
+                        "color": "$accent-primary",
+                        "position": 0
+                      },
+                      {
+                        "color": "$accent-secondary",
+                        "position": 1
+                      }
+                    ]
+                  },
+                  "cornerRadius": 14,
                   "layout": "vertical",
                   "gap": 4,
                   "padding": [
@@ -3902,7 +4367,7 @@
                           "fill": "$accent-primary",
                           "content": "06:30",
                           "fontFamily": "Geist Mono",
-                          "fontSize": 15,
+                          "fontSize": 14,
                           "fontWeight": "600"
                         },
                         {
@@ -3930,7 +4395,9 @@
                       "name": "Event Card Content",
                       "width": "fill_container",
                       "fill": "$bg-card",
-                      "cornerRadius": 10,
+                      "cornerRadius": 12,
+                      "stroke": "$border-card",
+                      "strokeWidth": 1,
                       "gap": 12,
                       "padding": 14,
                       "alignItems": "center",
@@ -3969,8 +4436,26 @@
                           "type": "frame",
                           "id": "B45LmO",
                           "name": "Join Event Btn",
-                          "fill": "$accent-primary",
-                          "cornerRadius": 8,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "$accent-primary",
+                                "position": 0
+                              },
+                              {
+                                "color": "$accent-secondary",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 10,
                           "padding": [
                             6,
                             12
@@ -4016,7 +4501,7 @@
                           "fill": "#3B82F6FF",
                           "content": "12:00",
                           "fontFamily": "Geist Mono",
-                          "fontSize": 15,
+                          "fontSize": 14,
                           "fontWeight": "600"
                         },
                         {
@@ -4044,7 +4529,9 @@
                       "name": "Event Card Content",
                       "width": "fill_container",
                       "fill": "$bg-card",
-                      "cornerRadius": 10,
+                      "cornerRadius": 12,
+                      "stroke": "$border-card",
+                      "strokeWidth": 1,
                       "gap": 12,
                       "padding": 14,
                       "alignItems": "center",
@@ -4083,8 +4570,26 @@
                           "type": "frame",
                           "id": "BB9gv",
                           "name": "Join Event Btn",
-                          "fill": "$accent-primary",
-                          "cornerRadius": 8,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "$accent-primary",
+                                "position": 0
+                              },
+                              {
+                                "color": "$accent-secondary",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 10,
                           "padding": [
                             6,
                             12
@@ -4130,7 +4635,7 @@
                           "fill": "$accent-secondary",
                           "content": "19:30",
                           "fontFamily": "Geist Mono",
-                          "fontSize": 15,
+                          "fontSize": 14,
                           "fontWeight": "600"
                         },
                         {
@@ -4158,7 +4663,9 @@
                       "name": "Event Card Content",
                       "width": "fill_container",
                       "fill": "$bg-card",
-                      "cornerRadius": 10,
+                      "cornerRadius": 12,
+                      "stroke": "$border-card",
+                      "strokeWidth": 1,
                       "gap": 12,
                       "padding": 14,
                       "alignItems": "center",
@@ -4197,8 +4704,26 @@
                           "type": "frame",
                           "id": "cTSIU",
                           "name": "Join Event Btn",
-                          "fill": "$accent-primary",
-                          "cornerRadius": 8,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "$accent-primary",
+                                "position": 0
+                              },
+                              {
+                                "color": "$accent-secondary",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 10,
                           "padding": [
                             6,
                             12
@@ -4256,7 +4781,9 @@
                   "name": "My Event Card",
                   "width": "fill_container",
                   "fill": "$bg-card",
-                  "cornerRadius": 10,
+                  "cornerRadius": 12,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
                   "gap": 12,
                   "padding": 12,
                   "alignItems": "center",
@@ -4309,7 +4836,9 @@
                   "name": "My Event Card",
                   "width": "fill_container",
                   "fill": "$bg-card",
-                  "cornerRadius": 10,
+                  "cornerRadius": 12,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
                   "gap": 12,
                   "padding": 12,
                   "alignItems": "center",
@@ -4435,7 +4964,9 @@
               "name": "Filter Tabs",
               "width": "fill_container",
               "fill": "$bg-card",
-              "cornerRadius": 10,
+              "cornerRadius": 12,
+              "stroke": "$border-card",
+              "strokeWidth": 1,
               "padding": 4,
               "children": [
                 {
@@ -4443,8 +4974,26 @@
                   "id": "jprsi",
                   "name": "Tab",
                   "width": "fill_container",
-                  "fill": "$accent-primary",
-                  "cornerRadius": 8,
+                  "fill": {
+                    "type": "gradient",
+                    "gradientType": "linear",
+                    "enabled": true,
+                    "rotation": 135,
+                    "size": {
+                      "height": 1
+                    },
+                    "colors": [
+                      {
+                        "color": "$accent-primary",
+                        "position": 0
+                      },
+                      {
+                        "color": "$accent-secondary",
+                        "position": 1
+                      }
+                    ]
+                  },
+                  "cornerRadius": 10,
                   "padding": [
                     10,
                     0
@@ -4482,7 +5031,8 @@
                       "fill": "$text-secondary",
                       "content": "本月",
                       "fontFamily": "$font-body",
-                      "fontSize": 13
+                      "fontSize": 13,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -4505,7 +5055,8 @@
                       "fill": "$text-secondary",
                       "content": "全部",
                       "fontFamily": "$font-body",
-                      "fontSize": 13
+                      "fontSize": 13,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -4517,6 +5068,10 @@
               "name": "Podium",
               "width": "fill_container",
               "gap": 10,
+              "padding": [
+                8,
+                0
+              ],
               "justifyContent": "center",
               "alignItems": "end",
               "children": [
@@ -4556,7 +5111,25 @@
                       "name": "Bar",
                       "width": "fill_container",
                       "height": 80,
-                      "fill": "#C0C0C0FF",
+                      "fill": {
+                        "type": "gradient",
+                        "gradientType": "linear",
+                        "enabled": true,
+                        "rotation": 180,
+                        "size": {
+                          "height": 1
+                        },
+                        "colors": [
+                          {
+                            "color": "#C0C0C0",
+                            "position": 0
+                          },
+                          {
+                            "color": "#909090",
+                            "position": 1
+                          }
+                        ]
+                      },
                       "cornerRadius": [
                         6,
                         6,
@@ -4571,7 +5144,7 @@
                           "id": "eSRs2",
                           "name": "Km",
                           "fill": "#0A0A0AFF",
-                          "content": "128",
+                          "content": "127.4",
                           "fontFamily": "$font-heading",
                           "fontSize": 14,
                           "fontWeight": "700"
@@ -4616,13 +5189,37 @@
                       "name": "Bar",
                       "width": "fill_container",
                       "height": 110,
-                      "fill": "#FFD700FF",
+                      "fill": {
+                        "type": "gradient",
+                        "gradientType": "linear",
+                        "enabled": true,
+                        "rotation": 180,
+                        "size": {
+                          "height": 1
+                        },
+                        "colors": [
+                          {
+                            "color": "#FFD700",
+                            "position": 0
+                          },
+                          {
+                            "color": "#FFA500",
+                            "position": 1
+                          }
+                        ]
+                      },
                       "cornerRadius": [
                         6,
                         6,
                         0,
                         0
                       ],
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#FFD70040",
+                        "blur": 16
+                      },
                       "justifyContent": "center",
                       "alignItems": "center",
                       "children": [
@@ -4631,7 +5228,7 @@
                           "id": "h6NaW",
                           "name": "Km",
                           "fill": "#0A0A0AFF",
-                          "content": "156",
+                          "content": "158.2",
                           "fontFamily": "$font-heading",
                           "fontSize": 14,
                           "fontWeight": "700"
@@ -4676,7 +5273,25 @@
                       "name": "Bar",
                       "width": "fill_container",
                       "height": 64,
-                      "fill": "#CD7F32FF",
+                      "fill": {
+                        "type": "gradient",
+                        "gradientType": "linear",
+                        "enabled": true,
+                        "rotation": 180,
+                        "size": {
+                          "height": 1
+                        },
+                        "colors": [
+                          {
+                            "color": "#CD7F32",
+                            "position": 0
+                          },
+                          {
+                            "color": "#A06020",
+                            "position": 1
+                          }
+                        ]
+                      },
                       "cornerRadius": [
                         6,
                         6,
@@ -4691,7 +5306,7 @@
                           "id": "O2pHa9",
                           "name": "Km",
                           "fill": "#0A0A0AFF",
-                          "content": "115",
+                          "content": "113.7",
                           "fontFamily": "$font-heading",
                           "fontSize": 14,
                           "fontWeight": "700"
@@ -4763,7 +5378,9 @@
               "name": "Rankings List",
               "width": "fill_container",
               "fill": "$bg-card",
-              "cornerRadius": 10,
+              "cornerRadius": 12,
+              "stroke": "$border-card",
+              "strokeWidth": 1,
               "layout": "vertical",
               "children": [
                 {
@@ -4803,7 +5420,7 @@
                       "id": "GB8ir",
                       "name": "Runner Km",
                       "fill": "$accent-primary",
-                      "content": "108",
+                      "content": "107.6",
                       "textAlign": "center",
                       "fontFamily": "$font-heading",
                       "fontSize": 14,
@@ -4814,7 +5431,7 @@
                       "id": "SyYfc",
                       "name": "Runner Pace",
                       "fill": "$text-secondary",
-                      "content": "5'38\"",
+                      "content": "5'37\"",
                       "textAlign": "center",
                       "fontFamily": "$font-body",
                       "fontSize": 13,
@@ -4859,7 +5476,7 @@
                       "id": "l2jaHA",
                       "name": "Runner Km",
                       "fill": "$accent-primary",
-                      "content": "96",
+                      "content": "95.8",
                       "textAlign": "center",
                       "fontFamily": "$font-heading",
                       "fontSize": 14,
@@ -4870,7 +5487,7 @@
                       "id": "Zd61L",
                       "name": "Runner Pace",
                       "fill": "$text-secondary",
-                      "content": "6'05\"",
+                      "content": "6'03\"",
                       "textAlign": "center",
                       "fontFamily": "$font-body",
                       "fontSize": 13,
@@ -4915,7 +5532,7 @@
                       "id": "OFAxA",
                       "name": "Runner Km",
                       "fill": "$accent-primary",
-                      "content": "84",
+                      "content": "83.2",
                       "textAlign": "center",
                       "fontFamily": "$font-heading",
                       "fontSize": 14,
@@ -4926,7 +5543,7 @@
                       "id": "gHIHj",
                       "name": "Runner Pace",
                       "fill": "$text-secondary",
-                      "content": "5'52\"",
+                      "content": "5'50\"",
                       "textAlign": "center",
                       "fontFamily": "$font-body",
                       "fontSize": 13,
@@ -4971,7 +5588,7 @@
                       "id": "XdayU",
                       "name": "Runner Km",
                       "fill": "$accent-primary",
-                      "content": "72",
+                      "content": "71.4",
                       "textAlign": "center",
                       "fontFamily": "$font-heading",
                       "fontSize": 14,
@@ -4982,7 +5599,7 @@
                       "id": "cMZeV",
                       "name": "Runner Pace",
                       "fill": "$text-secondary",
-                      "content": "6'30\"",
+                      "content": "6'28\"",
                       "textAlign": "center",
                       "fontFamily": "$font-body",
                       "fontSize": 13,
@@ -5027,7 +5644,7 @@
                       "id": "p3ax80",
                       "name": "Runner Km",
                       "fill": "$accent-primary",
-                      "content": "65",
+                      "content": "64.9",
                       "textAlign": "center",
                       "fontFamily": "$font-heading",
                       "fontSize": 14,
@@ -5038,7 +5655,7 @@
                       "id": "jreuI",
                       "name": "Runner Pace",
                       "fill": "$text-secondary",
-                      "content": "6'15\"",
+                      "content": "6'14\"",
                       "textAlign": "center",
                       "fontFamily": "$font-body",
                       "fontSize": 13,
@@ -5125,7 +5742,9 @@
               "name": "Profile Card",
               "width": "fill_container",
               "fill": "$bg-card",
-              "cornerRadius": 14,
+              "cornerRadius": 16,
+              "stroke": "$border-card",
+              "strokeWidth": 1,
               "gap": 14,
               "padding": 18,
               "alignItems": "center",
@@ -5136,8 +5755,32 @@
                   "name": "Profile Avatar",
                   "width": 56,
                   "height": 56,
-                  "fill": "$accent-primary",
+                  "fill": {
+                    "type": "gradient",
+                    "gradientType": "linear",
+                    "enabled": true,
+                    "rotation": 135,
+                    "size": {
+                      "height": 1
+                    },
+                    "colors": [
+                      {
+                        "color": "$accent-primary",
+                        "position": 0
+                      },
+                      {
+                        "color": "$accent-secondary",
+                        "position": 1
+                      }
+                    ]
+                  },
                   "cornerRadius": 28,
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "color": "#FF5F1F30",
+                    "blur": 10
+                  },
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -5211,7 +5854,9 @@
               "name": "Section List",
               "width": "fill_container",
               "fill": "$bg-card",
-              "cornerRadius": 10,
+              "cornerRadius": 12,
+              "stroke": "$border-card",
+              "strokeWidth": 1,
               "layout": "vertical",
               "children": [
                 {
@@ -5440,7 +6085,9 @@
               "name": "Section List",
               "width": "fill_container",
               "fill": "$bg-card",
-              "cornerRadius": 10,
+              "cornerRadius": 12,
+              "stroke": "$border-card",
+              "strokeWidth": 1,
               "layout": "vertical",
               "children": [
                 {
@@ -5593,131 +6240,1124 @@
             },
             {
               "type": "frame",
-              "id": "Fb0oR",
-              "name": "Section List",
+              "id": "v0BZi",
+              "name": "WeChat Subsection",
               "width": "fill_container",
-              "fill": "$bg-card",
-              "cornerRadius": 10,
               "layout": "vertical",
+              "gap": 10,
               "children": [
                 {
                   "type": "frame",
-                  "id": "nAiim",
-                  "name": "Settings Row",
+                  "id": "azCKJ",
+                  "name": "WeChat Status Card",
                   "width": "fill_container",
-                  "gap": 12,
-                  "padding": [
-                    14,
-                    16
-                  ],
+                  "fill": "#07C16014",
+                  "cornerRadius": 14,
+                  "stroke": "#07C16030",
+                  "strokeWidth": 1,
+                  "gap": 14,
+                  "padding": 18,
                   "alignItems": "center",
                   "children": [
                     {
-                      "type": "icon",
-                      "id": "l5cdMB",
-                      "name": "Item Icon",
-                      "width": 20,
-                      "height": 20,
-                      "icon": "link",
-                      "library": "lucide",
-                      "fill": "$accent-primary"
-                    },
-                    {
                       "type": "frame",
-                      "id": "O0fcm",
-                      "name": "Row Text",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 1,
+                      "id": "q4ZdT",
+                      "name": "WeChat Icon BG",
+                      "width": 48,
+                      "height": 48,
+                      "fill": "#07C160",
+                      "cornerRadius": 14,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#07C16040",
+                        "blur": 12
+                      },
+                      "justifyContent": "center",
+                      "alignItems": "center",
                       "children": [
                         {
                           "type": "text",
-                          "id": "BEZwX",
-                          "name": "Row Label",
+                          "id": "k90eTd",
+                          "name": "WeChat Letter",
+                          "fill": "#FFFFFFFF",
+                          "content": "微",
+                          "fontFamily": "$font-heading",
+                          "fontSize": 22,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "O66e9T",
+                      "name": "WeChat Info",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ji2EV",
+                          "name": "WeChat Status Title",
                           "fill": "$text-primary",
-                          "content": "微信账号",
+                          "content": "微信已绑定",
                           "fontFamily": "$font-body",
                           "fontSize": 14,
-                          "fontWeight": "normal"
+                          "fontWeight": "600"
                         },
                         {
                           "type": "text",
-                          "id": "C6DOW",
-                          "name": "Row Desc",
-                          "fill": "$text-muted",
-                          "content": "登录、分享、微信运动",
+                          "id": "QfFvo",
+                          "name": "WeChat Status Desc",
+                          "fill": "#07C160",
+                          "content": "账号 dkj_wx · 已连接",
                           "fontFamily": "$font-body",
-                          "fontSize": 11,
+                          "fontSize": 12,
                           "fontWeight": "normal"
                         }
                       ]
                     },
                     {
                       "type": "icon",
-                      "id": "DwCee",
-                      "name": "Chevron",
-                      "width": 16,
-                      "height": 16,
-                      "icon": "chevron-right",
+                      "id": "IXjnz",
+                      "name": "WeChat Check",
+                      "width": 22,
+                      "height": 22,
+                      "icon": "check",
                       "library": "lucide",
-                      "fill": "$text-muted"
+                      "fill": "#07C160"
                     }
                   ]
                 },
                 {
                   "type": "frame",
-                  "id": "eF6xc",
-                  "name": "Divider",
+                  "id": "LxXVj",
+                  "name": "WeChat Features",
                   "width": "fill_container",
-                  "height": 1,
-                  "fill": "$border-subtle"
+                  "fill": "$bg-card",
+                  "cornerRadius": 12,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Fj5uf",
+                      "name": "WeChat Feature Row",
+                      "width": "fill_container",
+                      "gap": 12,
+                      "padding": [
+                        12,
+                        16
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "mtZ8A",
+                          "name": "Feat Icon",
+                          "width": 18,
+                          "height": 18,
+                          "icon": "log-in",
+                          "library": "lucide",
+                          "fill": "#07C160"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "P7R11",
+                          "name": "Feat Text",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 1,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "kZZHf",
+                              "name": "Feat Label",
+                              "fill": "$text-primary",
+                              "content": "微信登录",
+                              "fontFamily": "$font-body",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "GUUwI",
+                              "name": "Feat Desc",
+                              "fill": "$text-muted",
+                              "content": "使用微信一键登录",
+                              "fontFamily": "$font-body",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "A3JFI",
+                          "name": "Toggle",
+                          "width": 48,
+                          "height": 28,
+                          "fill": "#07C160",
+                          "cornerRadius": 14,
+                          "padding": 2,
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "FJ87s",
+                              "name": "Toggle Knob",
+                              "width": 24,
+                              "height": 24,
+                              "fill": "#FFFFFFFF",
+                              "cornerRadius": 12
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "EBwzT",
+                      "name": "WeChat Feature Row",
+                      "width": "fill_container",
+                      "gap": 12,
+                      "padding": [
+                        12,
+                        16
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "GHwC4",
+                          "name": "Feat Icon",
+                          "width": 18,
+                          "height": 18,
+                          "icon": "share-2",
+                          "library": "lucide",
+                          "fill": "#07C160"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Vqcce",
+                          "name": "Feat Text",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 1,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "L1IyTb",
+                              "name": "Feat Label",
+                              "fill": "$text-primary",
+                              "content": "微信分享",
+                              "fontFamily": "$font-body",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "fmlIT",
+                              "name": "Feat Desc",
+                              "fill": "$text-muted",
+                              "content": "分享跑步成绩到好友/朋友圈",
+                              "fontFamily": "$font-body",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "fcgbd",
+                          "name": "Toggle",
+                          "width": 48,
+                          "height": 28,
+                          "fill": "#07C160",
+                          "cornerRadius": 14,
+                          "padding": 2,
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "fiTE9",
+                              "name": "Toggle Knob",
+                              "width": 24,
+                              "height": 24,
+                              "fill": "#FFFFFFFF",
+                              "cornerRadius": 12
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "D36TO5",
+                      "name": "WeChat Feature Row",
+                      "width": "fill_container",
+                      "gap": 12,
+                      "padding": [
+                        12,
+                        16
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "ZIBDF",
+                          "name": "Feat Icon",
+                          "width": 18,
+                          "height": 18,
+                          "icon": "activity",
+                          "library": "lucide",
+                          "fill": "$text-muted"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "eAUs3",
+                          "name": "Feat Text",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 1,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "t8lHJ9",
+                              "name": "Feat Label",
+                              "fill": "$text-muted",
+                              "content": "微信运动",
+                              "fontFamily": "$font-body",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "jQUpj",
+                              "name": "Feat Desc",
+                              "fill": "$text-muted",
+                              "content": "同步数据到微信运动排行",
+                              "fontFamily": "$font-body",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "XLOVK",
+                          "name": "Toggle",
+                          "width": 48,
+                          "height": 28,
+                          "fill": "$text-muted",
+                          "cornerRadius": 14,
+                          "padding": 2,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "n1T7o",
+                              "name": "Toggle Knob",
+                              "width": 24,
+                              "height": 24,
+                              "fill": "#FFFFFFFF",
+                              "cornerRadius": 12
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
                 },
                 {
                   "type": "frame",
-                  "id": "uVXSl",
-                  "name": "Settings Row",
+                  "id": "rL9Ho",
+                  "name": "WeRun Sync Card",
                   "width": "fill_container",
-                  "gap": 12,
-                  "padding": [
-                    14,
-                    16
-                  ],
+                  "fill": "$bg-card",
+                  "cornerRadius": 14,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 18,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "dxIB4",
+                      "name": "WeRun Title",
+                      "fill": "$text-primary",
+                      "content": "微信运动同步",
+                      "fontFamily": "$font-heading",
+                      "fontSize": 15,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Q2qY5l",
+                      "name": "WeRun Desc",
+                      "fill": "$text-secondary",
+                      "content": "开启后自动同步跑步数据到微信运动，参与好友步数排行",
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "vhmr1",
+                      "name": "WeRun Row",
+                      "width": "fill_container",
+                      "gap": 10,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "tbbLG",
+                          "name": "WeRun Icon",
+                          "width": 20,
+                          "height": 20,
+                          "icon": "unlink",
+                          "library": "lucide",
+                          "fill": "$text-muted"
+                        },
+                        {
+                          "type": "text",
+                          "id": "I56AT",
+                          "name": "WeRun Status",
+                          "fill": "$text-muted",
+                          "content": "未连接",
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "WgzCA",
+                          "name": "Connect WeRun Button",
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#07C160",
+                                "position": 0
+                              },
+                              {
+                                "color": "#06AD55",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 12,
+                          "effect": {
+                            "type": "shadow",
+                            "shadowType": "outer",
+                            "color": "#07C16040",
+                            "offset": {
+                              "x": 0,
+                              "y": 3
+                            },
+                            "blur": 14
+                          },
+                          "gap": 6,
+                          "padding": [
+                            8,
+                            16
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "d9Fxk",
+                              "name": "Link Icon",
+                              "width": 14,
+                              "height": 14,
+                              "icon": "link",
+                              "library": "lucide",
+                              "fill": "#FFFFFFFF"
+                            },
+                            {
+                              "type": "text",
+                              "id": "bxn9x",
+                              "name": "Connect Text",
+                              "fill": "#FFFFFFFF",
+                              "content": "连接微信运动",
+                              "fontFamily": "$font-body",
+                              "fontSize": 12,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "cgxWa",
+              "name": "Device Subsection",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ujX02",
+                  "name": "Device Label Row",
+                  "width": "fill_container",
+                  "gap": 8,
                   "alignItems": "center",
                   "children": [
                     {
                       "type": "icon",
-                      "id": "tIDW6",
-                      "name": "Item Icon",
-                      "width": 20,
-                      "height": 20,
+                      "id": "X928O",
+                      "name": "Device Label Icon",
+                      "width": 16,
+                      "height": 16,
                       "icon": "watch",
                       "library": "lucide",
                       "fill": "$accent-primary"
                     },
                     {
+                      "type": "text",
+                      "id": "lkSrT",
+                      "name": "Device Section Label",
+                      "fill": "$text-muted",
+                      "content": "运动设备",
+                      "fontFamily": "$font-body",
+                      "fontSize": 11,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "T1NBRo",
+                  "name": "Devices List",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "children": [
+                    {
                       "type": "frame",
-                      "id": "HciJY",
-                      "name": "Row Text",
+                      "id": "S6bEhD",
+                      "name": "Device Card",
                       "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 1,
+                      "fill": "$bg-card",
+                      "cornerRadius": 12,
+                      "stroke": "#22C55E30",
+                      "strokeWidth": 1,
+                      "gap": 12,
+                      "padding": 14,
+                      "alignItems": "center",
                       "children": [
                         {
+                          "type": "frame",
+                          "id": "rYKU1",
+                          "name": "Device Icon BG",
+                          "width": 40,
+                          "height": 40,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 135,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "$accent-primary",
+                                "position": 0
+                              },
+                              {
+                                "color": "$accent-secondary",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 11,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "MCsO2",
+                              "name": "Device Icon",
+                              "width": 18,
+                              "height": 18,
+                              "icon": "watch",
+                              "library": "lucide",
+                              "fill": "#FFFFFFFF"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "x2RMZp",
+                          "name": "Device Info",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "K9TAO",
+                              "name": "Device Name",
+                              "fill": "$text-primary",
+                              "content": "Apple Watch",
+                              "fontFamily": "$font-body",
+                              "fontSize": 13,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "gCv7Z",
+                              "name": "Device Status",
+                              "fill": "#22C55E",
+                              "content": "已连接 · 刚刚同步",
+                              "fontFamily": "$font-body",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "icon",
+                          "id": "j45ZwF",
+                          "name": "Check Icon",
+                          "width": 18,
+                          "height": 18,
+                          "icon": "check",
+                          "library": "lucide",
+                          "fill": "#22C55E"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ssKE2",
+                      "name": "Device Card",
+                      "width": "fill_container",
+                      "fill": "$bg-card",
+                      "cornerRadius": 12,
+                      "stroke": "$border-card",
+                      "strokeWidth": 1,
+                      "gap": 12,
+                      "padding": 14,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "J9LcGB",
+                          "name": "Device Icon BG",
+                          "width": 40,
+                          "height": 40,
+                          "fill": "$bg-secondary",
+                          "cornerRadius": 11,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "hAbZH",
+                              "name": "Device Icon",
+                              "width": 18,
+                              "height": 18,
+                              "icon": "watch",
+                              "library": "lucide",
+                              "fill": "$text-secondary"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "yWTgV",
+                          "name": "Device Info",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "o7HW7",
+                              "name": "Device Name",
+                              "fill": "$text-primary",
+                              "content": "Garmin Connect",
+                              "fontFamily": "$font-body",
+                              "fontSize": 13,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "tdZqC",
+                              "name": "Device Status",
+                              "fill": "$text-muted",
+                              "content": "点击连接",
+                              "fontFamily": "$font-body",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "R9UW9",
+                          "name": "Connect Button Small",
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "$accent-primary",
+                                "position": 0
+                              },
+                              {
+                                "color": "$accent-secondary",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 8,
+                          "gap": 4,
+                          "padding": [
+                            6,
+                            12
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "K3xGbt",
+                              "name": "Connect Label",
+                              "fill": "#FFFFFFFF",
+                              "content": "连接",
+                              "fontFamily": "$font-body",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "I3ILdX",
+                      "name": "Device Card",
+                      "width": "fill_container",
+                      "fill": "$bg-card",
+                      "cornerRadius": 12,
+                      "stroke": "$border-card",
+                      "strokeWidth": 1,
+                      "gap": 12,
+                      "padding": 14,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "ZxfKZ",
+                          "name": "Device Icon BG",
+                          "width": 40,
+                          "height": 40,
+                          "fill": "$bg-secondary",
+                          "cornerRadius": 11,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "t8fP9",
+                              "name": "Device Icon",
+                              "width": 18,
+                              "height": 18,
+                              "icon": "activity",
+                              "library": "lucide",
+                              "fill": "$text-secondary"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "AnR3W",
+                          "name": "Device Info",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "UyebV",
+                              "name": "Device Name",
+                              "fill": "$text-primary",
+                              "content": "Strava",
+                              "fontFamily": "$font-body",
+                              "fontSize": 13,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "xaVmR",
+                              "name": "Device Status",
+                              "fill": "$text-muted",
+                              "content": "点击连接",
+                              "fontFamily": "$font-body",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "wzLQk",
+                          "name": "Connect Button Small",
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "$accent-primary",
+                                "position": 0
+                              },
+                              {
+                                "color": "$accent-secondary",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 8,
+                          "gap": 4,
+                          "padding": [
+                            6,
+                            12
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "w6dpsG",
+                              "name": "Connect Label",
+                              "fill": "#FFFFFFFF",
+                              "content": "连接",
+                              "fontFamily": "$font-body",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Kkyz6",
+                      "name": "Device Card",
+                      "width": "fill_container",
+                      "fill": "$bg-card",
+                      "cornerRadius": 12,
+                      "stroke": "$border-card",
+                      "strokeWidth": 1,
+                      "gap": 12,
+                      "padding": 14,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "J36qKp",
+                          "name": "Device Icon BG",
+                          "width": 40,
+                          "height": 40,
+                          "fill": "$bg-secondary",
+                          "cornerRadius": 11,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "VD8fD",
+                              "name": "Device Icon",
+                              "width": 18,
+                              "height": 18,
+                              "icon": "heart",
+                              "library": "lucide",
+                              "fill": "$text-secondary"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "whTxi",
+                          "name": "Device Info",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "dK29J",
+                              "name": "Device Name",
+                              "fill": "$text-primary",
+                              "content": "华为健康",
+                              "fontFamily": "$font-body",
+                              "fontSize": 13,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "mmJqQ",
+                              "name": "Device Status",
+                              "fill": "$text-muted",
+                              "content": "点击连接",
+                              "fontFamily": "$font-body",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "y7HO7Y",
+                          "name": "Connect Button Small",
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "$accent-primary",
+                                "position": 0
+                              },
+                              {
+                                "color": "$accent-secondary",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 8,
+                          "gap": 4,
+                          "padding": [
+                            6,
+                            12
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "OtLIW",
+                              "name": "Connect Label",
+                              "fill": "#FFFFFFFF",
+                              "content": "连接",
+                              "fontFamily": "$font-body",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "CT4Ae",
+                      "name": "Device Card",
+                      "width": "fill_container",
+                      "fill": "$bg-card",
+                      "cornerRadius": 12,
+                      "stroke": "$border-card",
+                      "strokeWidth": 1,
+                      "gap": 12,
+                      "padding": 14,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "crDlv",
+                          "name": "Device Icon BG",
+                          "width": 40,
+                          "height": 40,
+                          "fill": "$bg-secondary",
+                          "cornerRadius": 11,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "o4acTy",
+                              "name": "Device Icon",
+                              "width": 18,
+                              "height": 18,
+                              "icon": "activity",
+                              "library": "lucide",
+                              "fill": "$text-secondary"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "G4vImq",
+                          "name": "Device Info",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "ClRDc",
+                              "name": "Device Name",
+                              "fill": "$text-primary",
+                              "content": "小米运动",
+                              "fontFamily": "$font-body",
+                              "fontSize": 13,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "Z7iNp",
+                              "name": "Device Status",
+                              "fill": "$text-muted",
+                              "content": "点击连接",
+                              "fontFamily": "$font-body",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "PjsiS",
+                          "name": "Connect Button Small",
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "linear",
+                            "enabled": true,
+                            "rotation": 90,
+                            "size": {
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "$accent-primary",
+                                "position": 0
+                              },
+                              {
+                                "color": "$accent-secondary",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "cornerRadius": 8,
+                          "gap": 4,
+                          "padding": [
+                            6,
+                            12
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "zJkB1",
+                              "name": "Connect Label",
+                              "fill": "#FFFFFFFF",
+                              "content": "连接",
+                              "fontFamily": "$font-body",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "q6TknI",
+                  "name": "Import History",
+                  "width": "fill_container",
+                  "fill": "$bg-card",
+                  "cornerRadius": 14,
+                  "stroke": "$border-card",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 16,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "OseO5",
+                      "name": "Import Title",
+                      "fill": "$text-primary",
+                      "content": "数据导入历史",
+                      "fontFamily": "$font-heading",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "O1G6LO",
+                      "name": "Import Row",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "LNGH5",
+                          "name": "Import Icon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "download",
+                          "library": "lucide",
+                          "fill": "$text-muted"
+                        },
+                        {
                           "type": "text",
-                          "id": "tlSAq",
-                          "name": "Row Label",
+                          "id": "jqvEf",
+                          "name": "Import Source",
                           "fill": "$text-primary",
-                          "content": "运动设备",
+                          "content": "Apple Watch",
                           "fontFamily": "$font-body",
-                          "fontSize": 14,
+                          "fontSize": 12,
                           "fontWeight": "normal"
                         },
                         {
                           "type": "text",
-                          "id": "Y0KzK",
-                          "name": "Row Desc",
+                          "id": "hZx4U",
+                          "name": "Import Date",
                           "fill": "$text-muted",
-                          "content": "Apple Watch、Garmin、其他",
+                          "content": "06-05",
+                          "fontFamily": "$font-body",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "M5yO1",
+                          "name": "Import Count",
+                          "fill": "$text-secondary",
+                          "content": "3 条",
                           "fontFamily": "$font-body",
                           "fontSize": 11,
                           "fontWeight": "normal"
@@ -5725,14 +7365,104 @@
                       ]
                     },
                     {
-                      "type": "icon",
-                      "id": "I1MMB",
-                      "name": "Chevron",
-                      "width": 16,
-                      "height": 16,
-                      "icon": "chevron-right",
-                      "library": "lucide",
-                      "fill": "$text-muted"
+                      "type": "frame",
+                      "id": "WgCYA",
+                      "name": "Import Row",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "Flpjp",
+                          "name": "Import Icon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "download",
+                          "library": "lucide",
+                          "fill": "$text-muted"
+                        },
+                        {
+                          "type": "text",
+                          "id": "EhlJy",
+                          "name": "Import Source",
+                          "fill": "$text-primary",
+                          "content": "Apple Watch",
+                          "fontFamily": "$font-body",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Pu6Hc",
+                          "name": "Import Date",
+                          "fill": "$text-muted",
+                          "content": "06-04",
+                          "fontFamily": "$font-body",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "MWbmw",
+                          "name": "Import Count",
+                          "fill": "$text-secondary",
+                          "content": "2 条",
+                          "fontFamily": "$font-body",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "VL2dm",
+                      "name": "Import Row",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "qsD7R",
+                          "name": "Import Icon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "download",
+                          "library": "lucide",
+                          "fill": "$text-muted"
+                        },
+                        {
+                          "type": "text",
+                          "id": "ahVTN",
+                          "name": "Import Source",
+                          "fill": "$text-primary",
+                          "content": "Apple Watch",
+                          "fontFamily": "$font-body",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Ut26Q",
+                          "name": "Import Date",
+                          "fill": "$text-muted",
+                          "content": "06-01",
+                          "fontFamily": "$font-body",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "m2i0RQ",
+                          "name": "Import Count",
+                          "fill": "$text-secondary",
+                          "content": "1 条",
+                          "fontFamily": "$font-body",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        }
+                      ]
                     }
                   ]
                 }
@@ -5744,7 +7474,9 @@
               "name": "Logout Button",
               "width": "fill_container",
               "fill": "$bg-card",
-              "cornerRadius": 12,
+              "cornerRadius": 14,
+              "stroke": "$danger",
+              "strokeWidth": 1,
               "padding": [
                 14,
                 0
@@ -5755,7 +7487,7 @@
                   "type": "text",
                   "id": "uMZei",
                   "name": "Logout Text",
-                  "fill": "#FF4444FF",
+                  "fill": "$danger",
                   "content": "退出登录",
                   "fontFamily": "$font-body",
                   "fontSize": 14,
@@ -5773,1371 +7505,36 @@
           "width": "fill_container"
         }
       ]
-    },
-    {
-      "type": "frame",
-      "id": "d9yeFx",
-      "x": 4500,
-      "y": 0,
-      "name": "WeChat Integration Screen",
-      "clip": true,
-      "width": 390,
-      "fill": "$bg-primary",
-      "layout": "vertical",
-      "children": [
-        {
-          "id": "X74NRj",
-          "type": "ref",
-          "ref": "eRXOl",
-          "name": "StatusBar",
-          "width": "fill_container"
-        },
-        {
-          "type": "frame",
-          "id": "huSmj",
-          "name": "Content",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": [
-            0,
-            20
-          ],
-          "children": [
-            {
-              "type": "frame",
-              "id": "DQT04",
-              "name": "Nav Header",
-              "width": "fill_container",
-              "gap": 12,
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "YKptL",
-                  "name": "Back",
-                  "width": 22,
-                  "height": 22,
-                  "icon": "arrow-left",
-                  "library": "lucide",
-                  "fill": "$text-primary"
-                },
-                {
-                  "type": "text",
-                  "id": "ZRs6o",
-                  "name": "Title",
-                  "fill": "$text-primary",
-                  "content": "微信集成",
-                  "fontFamily": "$font-heading",
-                  "fontSize": 20,
-                  "fontWeight": "600"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "rIEcH",
-              "name": "WeChat Status Card",
-              "width": "fill_container",
-              "fill": "#07C1601A",
-              "cornerRadius": 14,
-              "gap": 14,
-              "padding": 20,
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "frame",
-                  "id": "wCXiH",
-                  "name": "WeChat Icon",
-                  "width": 52,
-                  "height": 52,
-                  "fill": "#07C160FF",
-                  "cornerRadius": 14,
-                  "justifyContent": "center",
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "mtKod",
-                      "name": "WeChat Letter",
-                      "fill": "#FFFFFFFF",
-                      "content": "微",
-                      "fontFamily": "$font-heading",
-                      "fontSize": 24,
-                      "fontWeight": "700"
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "N08s44",
-                  "name": "WeChat Info",
-                  "width": "fill_container",
-                  "layout": "vertical",
-                  "gap": 2,
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "Gqfat",
-                      "name": "Status Title",
-                      "fill": "$text-primary",
-                      "content": "微信已绑定",
-                      "fontFamily": "$font-body",
-                      "fontSize": 14,
-                      "fontWeight": "600"
-                    },
-                    {
-                      "type": "text",
-                      "id": "pTCzH",
-                      "name": "Status Desc",
-                      "fill": "#07C160FF",
-                      "content": "微信账号: dkj_wx ● 已连接",
-                      "fontFamily": "$font-body",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "r4KlQz",
-              "name": "Features List",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 2,
-              "children": [
-                {
-                  "type": "frame",
-                  "id": "YRUV7",
-                  "name": "Feature Row",
-                  "width": "fill_container",
-                  "fill": "$bg-card",
-                  "cornerRadius": 10,
-                  "gap": 12,
-                  "padding": [
-                    14,
-                    16
-                  ],
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "icon",
-                      "id": "f6HS9T",
-                      "name": "Feat Icon",
-                      "width": 20,
-                      "height": 20,
-                      "icon": "log-in",
-                      "library": "lucide",
-                      "fill": "#07C160FF"
-                    },
-                    {
-                      "type": "frame",
-                      "id": "X7BJo",
-                      "name": "Feat Text",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 1,
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "dVDEv",
-                          "name": "Feat Label",
-                          "fill": "$text-primary",
-                          "content": "微信登录",
-                          "fontFamily": "$font-body",
-                          "fontSize": 14,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "text",
-                          "id": "gZme6",
-                          "name": "Feat Desc",
-                          "fill": "$text-muted",
-                          "content": "使用微信账号一键登录",
-                          "fontFamily": "$font-body",
-                          "fontSize": 11,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "c9FoLC",
-                      "name": "Toggle",
-                      "width": 48,
-                      "height": 28,
-                      "fill": "#07C160FF",
-                      "cornerRadius": 14,
-                      "padding": 2,
-                      "justifyContent": "end",
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "frame",
-                          "id": "QKgYF",
-                          "name": "Toggle Knob",
-                          "width": 24,
-                          "height": 24,
-                          "fill": "#FFFFFFFF",
-                          "cornerRadius": 12
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "rK1lN",
-                  "name": "Feature Row",
-                  "width": "fill_container",
-                  "fill": "$bg-card",
-                  "cornerRadius": 10,
-                  "gap": 12,
-                  "padding": [
-                    14,
-                    16
-                  ],
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "icon",
-                      "id": "cphfb",
-                      "name": "Feat Icon",
-                      "width": 20,
-                      "height": 20,
-                      "icon": "share-2",
-                      "library": "lucide",
-                      "fill": "#07C160FF"
-                    },
-                    {
-                      "type": "frame",
-                      "id": "lvvjD",
-                      "name": "Feat Text",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 1,
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "YF1M7",
-                          "name": "Feat Label",
-                          "fill": "$text-primary",
-                          "content": "微信分享",
-                          "fontFamily": "$font-body",
-                          "fontSize": 14,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "text",
-                          "id": "BoI4R",
-                          "name": "Feat Desc",
-                          "fill": "$text-muted",
-                          "content": "分享跑步成绩到微信好友/朋友圈",
-                          "fontFamily": "$font-body",
-                          "fontSize": 11,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "H02otL",
-                      "name": "Toggle",
-                      "width": 48,
-                      "height": 28,
-                      "fill": "#07C160FF",
-                      "cornerRadius": 14,
-                      "padding": 2,
-                      "justifyContent": "end",
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "frame",
-                          "id": "I3xZZm",
-                          "name": "Toggle Knob",
-                          "width": 24,
-                          "height": 24,
-                          "fill": "#FFFFFFFF",
-                          "cornerRadius": 12
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "aEEtJ",
-                  "name": "Feature Row",
-                  "width": "fill_container",
-                  "fill": "$bg-card",
-                  "cornerRadius": 10,
-                  "gap": 12,
-                  "padding": [
-                    14,
-                    16
-                  ],
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "icon",
-                      "id": "YOqWH",
-                      "name": "Feat Icon",
-                      "width": 20,
-                      "height": 20,
-                      "icon": "activity",
-                      "library": "lucide",
-                      "fill": "$text-muted"
-                    },
-                    {
-                      "type": "frame",
-                      "id": "ASOrb",
-                      "name": "Feat Text",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 1,
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "g8sn5",
-                          "name": "Feat Label",
-                          "fill": "$text-muted",
-                          "content": "微信运动",
-                          "fontFamily": "$font-body",
-                          "fontSize": 14,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "text",
-                          "id": "p4SoS",
-                          "name": "Feat Desc",
-                          "fill": "$text-muted",
-                          "content": "同步数据到微信运动排行榜",
-                          "fontFamily": "$font-body",
-                          "fontSize": 11,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "gSIH6",
-                      "name": "Toggle",
-                      "width": 48,
-                      "height": 28,
-                      "fill": "$text-muted",
-                      "cornerRadius": 14,
-                      "padding": 2,
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "frame",
-                          "id": "a7ifk",
-                          "name": "Toggle Knob",
-                          "width": 24,
-                          "height": 24,
-                          "fill": "#FFFFFFFF",
-                          "cornerRadius": 12
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "e8bv84",
-                  "name": "Feature Row",
-                  "width": "fill_container",
-                  "fill": "$bg-card",
-                  "cornerRadius": 10,
-                  "gap": 12,
-                  "padding": [
-                    14,
-                    16
-                  ],
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "icon",
-                      "id": "gJB7d",
-                      "name": "Feat Icon",
-                      "width": 20,
-                      "height": 20,
-                      "icon": "users",
-                      "library": "lucide",
-                      "fill": "$text-muted"
-                    },
-                    {
-                      "type": "frame",
-                      "id": "OnD7r",
-                      "name": "Feat Text",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 1,
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "Qiyew",
-                          "name": "Feat Label",
-                          "fill": "$text-muted",
-                          "content": "好友邀请",
-                          "fontFamily": "$font-body",
-                          "fontSize": 14,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "text",
-                          "id": "v5qjcb",
-                          "name": "Feat Desc",
-                          "fill": "$text-muted",
-                          "content": "通过微信邀请好友加入约跑",
-                          "fontFamily": "$font-body",
-                          "fontSize": 11,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "Yrg2F",
-                      "name": "Toggle",
-                      "width": 48,
-                      "height": 28,
-                      "fill": "$text-muted",
-                      "cornerRadius": 14,
-                      "padding": 2,
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "frame",
-                          "id": "vOyfX",
-                          "name": "Toggle Knob",
-                          "width": 24,
-                          "height": 24,
-                          "fill": "#FFFFFFFF",
-                          "cornerRadius": 12
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "BpAYA",
-              "name": "WeRun Section",
-              "width": "fill_container",
-              "fill": "$bg-card",
-              "cornerRadius": 14,
-              "layout": "vertical",
-              "gap": 10,
-              "padding": 20,
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "text",
-                  "id": "WinRU",
-                  "name": "WeRun Title",
-                  "fill": "$text-primary",
-                  "content": "微信运动 SDK",
-                  "fontFamily": "$font-heading",
-                  "fontSize": 16,
-                  "fontWeight": "600"
-                },
-                {
-                  "type": "text",
-                  "id": "ldM7Y",
-                  "name": "WeRun Desc",
-                  "fill": "$text-secondary",
-                  "content": "开启后将自动同步跑步数据到微信运动，参与好友步数排行",
-                  "fontFamily": "$font-body",
-                  "fontSize": 13,
-                  "fontWeight": "normal"
-                },
-                {
-                  "type": "icon",
-                  "id": "I1cXzv",
-                  "name": "Link Broken",
-                  "width": 32,
-                  "height": 32,
-                  "icon": "unlink",
-                  "library": "lucide",
-                  "fill": "$text-muted"
-                },
-                {
-                  "type": "text",
-                  "id": "oHvUw",
-                  "name": "Not Connected",
-                  "fill": "$text-muted",
-                  "content": "未连接",
-                  "fontFamily": "$font-body",
-                  "fontSize": 13,
-                  "fontWeight": "normal"
-                },
-                {
-                  "type": "frame",
-                  "id": "FkVL9",
-                  "name": "Connect Button",
-                  "fill": "#07C160FF",
-                  "cornerRadius": 10,
-                  "gap": 6,
-                  "padding": [
-                    10,
-                    20
-                  ],
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "icon",
-                      "id": "bG3JO",
-                      "name": "Link Icon",
-                      "width": 16,
-                      "height": 16,
-                      "icon": "link",
-                      "library": "lucide",
-                      "fill": "#FFFFFFFF"
-                    },
-                    {
-                      "type": "text",
-                      "id": "n2z9FJ",
-                      "name": "Connect Text",
-                      "fill": "#FFFFFFFF",
-                      "content": "连接微信运动",
-                      "fontFamily": "$font-body",
-                      "fontSize": 13,
-                      "fontWeight": "600"
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "id": "ZMt6i",
-          "type": "ref",
-          "ref": "PfeG4",
-          "name": "TabBar",
-          "width": "fill_container"
-        }
-      ]
-    },
-    {
-      "type": "frame",
-      "id": "vjY2X",
-      "x": 4950,
-      "y": 0,
-      "name": "Device Connection Screen",
-      "clip": true,
-      "width": 390,
-      "fill": "$bg-primary",
-      "layout": "vertical",
-      "children": [
-        {
-          "id": "yRZHt",
-          "type": "ref",
-          "ref": "eRXOl",
-          "name": "StatusBar",
-          "width": "fill_container"
-        },
-        {
-          "type": "frame",
-          "id": "jziln",
-          "name": "Content",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 24,
-          "padding": [
-            0,
-            20
-          ],
-          "children": [
-            {
-              "type": "frame",
-              "id": "JendW",
-              "name": "Nav Header",
-              "width": "fill_container",
-              "gap": 12,
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "dqU2z",
-                  "name": "Back",
-                  "width": 22,
-                  "height": 22,
-                  "icon": "arrow-left",
-                  "library": "lucide",
-                  "fill": "$text-primary"
-                },
-                {
-                  "type": "text",
-                  "id": "cQMqk",
-                  "name": "Title",
-                  "fill": "$text-primary",
-                  "content": "连接运动设备",
-                  "fontFamily": "$font-heading",
-                  "fontSize": 20,
-                  "fontWeight": "600"
-                }
-              ]
-            },
-            {
-              "type": "text",
-              "id": "fLsGc",
-              "name": "Intro Text",
-              "fill": "$text-secondary",
-              "content": "连接你的运动手表或健身设备，自动导入运动数据",
-              "fontFamily": "$font-body",
-              "fontSize": 13,
-              "fontWeight": "normal"
-            },
-            {
-              "type": "frame",
-              "id": "z53mOK",
-              "name": "Devices List",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 10,
-              "children": [
-                {
-                  "type": "frame",
-                  "id": "z7rOdj",
-                  "name": "Device Card",
-                  "width": "fill_container",
-                  "fill": "$bg-card",
-                  "cornerRadius": 12,
-                  "gap": 12,
-                  "padding": 16,
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "LHrRC",
-                      "name": "Device Icon BG",
-                      "width": 44,
-                      "height": 44,
-                      "fill": "$accent-primary",
-                      "cornerRadius": 12,
-                      "justifyContent": "center",
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "icon",
-                          "id": "K0avGR",
-                          "name": "Device Icon",
-                          "width": 22,
-                          "height": 22,
-                          "icon": "watch",
-                          "library": "lucide",
-                          "fill": "#FFFFFFFF"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "XaVF5",
-                      "name": "Device Info",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 2,
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "CkCsq",
-                          "name": "Device Name",
-                          "fill": "$text-primary",
-                          "content": "Apple Watch",
-                          "fontFamily": "$font-body",
-                          "fontSize": 14,
-                          "fontWeight": "600"
-                        },
-                        {
-                          "type": "text",
-                          "id": "HqC5G",
-                          "name": "Device Status",
-                          "fill": "#22C55EFF",
-                          "content": "已连接 · 刚刚同步",
-                          "fontFamily": "$font-body",
-                          "fontSize": 11,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "icon",
-                      "id": "Bhaf4",
-                      "name": "Check Icon",
-                      "width": 20,
-                      "height": 20,
-                      "icon": "check",
-                      "library": "lucide",
-                      "fill": "#22C55EFF"
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "Lbq0R",
-                  "name": "Device Card",
-                  "width": "fill_container",
-                  "fill": "$bg-card",
-                  "cornerRadius": 12,
-                  "gap": 12,
-                  "padding": 16,
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "OYB2M",
-                      "name": "Device Icon BG",
-                      "width": 44,
-                      "height": 44,
-                      "fill": "$bg-secondary",
-                      "cornerRadius": 12,
-                      "justifyContent": "center",
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "icon",
-                          "id": "snlPl",
-                          "name": "Device Icon",
-                          "width": 22,
-                          "height": 22,
-                          "icon": "watch",
-                          "library": "lucide",
-                          "fill": "$text-secondary"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "EuAR0",
-                      "name": "Device Info",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 2,
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "IHbXV",
-                          "name": "Device Name",
-                          "fill": "$text-primary",
-                          "content": "Garmin Connect",
-                          "fontFamily": "$font-body",
-                          "fontSize": 14,
-                          "fontWeight": "600"
-                        },
-                        {
-                          "type": "text",
-                          "id": "vGkB5",
-                          "name": "Device Status",
-                          "fill": "$text-muted",
-                          "content": "Garmin · 点击连接",
-                          "fontFamily": "$font-body",
-                          "fontSize": 11,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "L29SjR",
-                      "name": "Connect Arrow",
-                      "fill": "$accent-primary",
-                      "cornerRadius": 8,
-                      "padding": [
-                        6,
-                        12
-                      ],
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "TWsJh",
-                          "name": "Connect Label",
-                          "fill": "#FFFFFFFF",
-                          "content": "连接",
-                          "fontFamily": "$font-body",
-                          "fontSize": 11,
-                          "fontWeight": "600"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "GGNnw",
-                  "name": "Device Card",
-                  "width": "fill_container",
-                  "fill": "$bg-card",
-                  "cornerRadius": 12,
-                  "gap": 12,
-                  "padding": 16,
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "h3YuE",
-                      "name": "Device Icon BG",
-                      "width": 44,
-                      "height": 44,
-                      "fill": "$bg-secondary",
-                      "cornerRadius": 12,
-                      "justifyContent": "center",
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "icon",
-                          "id": "wnX8n",
-                          "name": "Device Icon",
-                          "width": 22,
-                          "height": 22,
-                          "icon": "activity",
-                          "library": "lucide",
-                          "fill": "$text-secondary"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "lXi6q",
-                      "name": "Device Info",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 2,
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "Jp4tc",
-                          "name": "Device Name",
-                          "fill": "$text-primary",
-                          "content": "Strava",
-                          "fontFamily": "$font-body",
-                          "fontSize": 14,
-                          "fontWeight": "600"
-                        },
-                        {
-                          "type": "text",
-                          "id": "Cwtpz",
-                          "name": "Device Status",
-                          "fill": "$text-muted",
-                          "content": "Strava · 点击连接",
-                          "fontFamily": "$font-body",
-                          "fontSize": 11,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "k9528",
-                      "name": "Connect Arrow",
-                      "fill": "$accent-primary",
-                      "cornerRadius": 8,
-                      "padding": [
-                        6,
-                        12
-                      ],
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "f9lKjO",
-                          "name": "Connect Label",
-                          "fill": "#FFFFFFFF",
-                          "content": "连接",
-                          "fontFamily": "$font-body",
-                          "fontSize": 11,
-                          "fontWeight": "600"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "Pxw4C",
-                  "name": "Device Card",
-                  "width": "fill_container",
-                  "fill": "$bg-card",
-                  "cornerRadius": 12,
-                  "gap": 12,
-                  "padding": 16,
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "sNiyL",
-                      "name": "Device Icon BG",
-                      "width": 44,
-                      "height": 44,
-                      "fill": "$bg-secondary",
-                      "cornerRadius": 12,
-                      "justifyContent": "center",
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "icon",
-                          "id": "WOJne",
-                          "name": "Device Icon",
-                          "width": 22,
-                          "height": 22,
-                          "icon": "smartphone",
-                          "library": "lucide",
-                          "fill": "$text-secondary"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "H158O",
-                      "name": "Device Info",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 2,
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "N6chH",
-                          "name": "Device Name",
-                          "fill": "$text-primary",
-                          "content": "Keep",
-                          "fontFamily": "$font-body",
-                          "fontSize": 14,
-                          "fontWeight": "600"
-                        },
-                        {
-                          "type": "text",
-                          "id": "FR6DS",
-                          "name": "Device Status",
-                          "fill": "$text-muted",
-                          "content": "Keep · 点击连接",
-                          "fontFamily": "$font-body",
-                          "fontSize": 11,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "ADxMd",
-                      "name": "Connect Arrow",
-                      "fill": "$accent-primary",
-                      "cornerRadius": 8,
-                      "padding": [
-                        6,
-                        12
-                      ],
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "mczrs",
-                          "name": "Connect Label",
-                          "fill": "#FFFFFFFF",
-                          "content": "连接",
-                          "fontFamily": "$font-body",
-                          "fontSize": 11,
-                          "fontWeight": "600"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "l9SyY5",
-                  "name": "Device Card",
-                  "width": "fill_container",
-                  "fill": "$bg-card",
-                  "cornerRadius": 12,
-                  "gap": 12,
-                  "padding": 16,
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "Vk7l9",
-                      "name": "Device Icon BG",
-                      "width": 44,
-                      "height": 44,
-                      "fill": "$bg-secondary",
-                      "cornerRadius": 12,
-                      "justifyContent": "center",
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "icon",
-                          "id": "GwqTS",
-                          "name": "Device Icon",
-                          "width": 22,
-                          "height": 22,
-                          "icon": "heart",
-                          "library": "lucide",
-                          "fill": "$text-secondary"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "KFtrl",
-                      "name": "Device Info",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 2,
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "BiFY1",
-                          "name": "Device Name",
-                          "fill": "$text-primary",
-                          "content": "华为健康",
-                          "fontFamily": "$font-body",
-                          "fontSize": 14,
-                          "fontWeight": "600"
-                        },
-                        {
-                          "type": "text",
-                          "id": "TeQqe",
-                          "name": "Device Status",
-                          "fill": "$text-muted",
-                          "content": "华为 · 点击连接",
-                          "fontFamily": "$font-body",
-                          "fontSize": 11,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "BimYi",
-                      "name": "Connect Arrow",
-                      "fill": "$accent-primary",
-                      "cornerRadius": 8,
-                      "padding": [
-                        6,
-                        12
-                      ],
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "GmkOt",
-                          "name": "Connect Label",
-                          "fill": "#FFFFFFFF",
-                          "content": "连接",
-                          "fontFamily": "$font-body",
-                          "fontSize": 11,
-                          "fontWeight": "600"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "eivS3",
-                  "name": "Device Card",
-                  "width": "fill_container",
-                  "fill": "$bg-card",
-                  "cornerRadius": 12,
-                  "gap": 12,
-                  "padding": 16,
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "DKwAM",
-                      "name": "Device Icon BG",
-                      "width": 44,
-                      "height": 44,
-                      "fill": "$bg-secondary",
-                      "cornerRadius": 12,
-                      "justifyContent": "center",
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "icon",
-                          "id": "rpPjE",
-                          "name": "Device Icon",
-                          "width": 22,
-                          "height": 22,
-                          "icon": "activity",
-                          "library": "lucide",
-                          "fill": "$text-secondary"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "wWRz7",
-                      "name": "Device Info",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 2,
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "CMKE6",
-                          "name": "Device Name",
-                          "fill": "$text-primary",
-                          "content": "小米运动",
-                          "fontFamily": "$font-body",
-                          "fontSize": 14,
-                          "fontWeight": "600"
-                        },
-                        {
-                          "type": "text",
-                          "id": "y5Le4",
-                          "name": "Device Status",
-                          "fill": "$text-muted",
-                          "content": "小米 · 点击连接",
-                          "fontFamily": "$font-body",
-                          "fontSize": 11,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "G2FiT",
-                      "name": "Connect Arrow",
-                      "fill": "$accent-primary",
-                      "cornerRadius": 8,
-                      "padding": [
-                        6,
-                        12
-                      ],
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "cBOKF",
-                          "name": "Connect Label",
-                          "fill": "#FFFFFFFF",
-                          "content": "连接",
-                          "fontFamily": "$font-body",
-                          "fontSize": 11,
-                          "fontWeight": "600"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "IjaXT",
-              "name": "Data Import Section",
-              "width": "fill_container",
-              "fill": "$bg-card",
-              "cornerRadius": 14,
-              "layout": "vertical",
-              "gap": 12,
-              "padding": 18,
-              "children": [
-                {
-                  "type": "text",
-                  "id": "h6awd",
-                  "name": "Data Title",
-                  "fill": "$text-primary",
-                  "content": "数据导入历史",
-                  "fontFamily": "$font-heading",
-                  "fontSize": 15,
-                  "fontWeight": "600"
-                },
-                {
-                  "type": "frame",
-                  "id": "lsYmc",
-                  "name": "Import Row",
-                  "width": "fill_container",
-                  "gap": 8,
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "icon",
-                      "id": "vzi3f",
-                      "name": "Import Icon",
-                      "width": 16,
-                      "height": 16,
-                      "icon": "download",
-                      "library": "lucide",
-                      "fill": "$text-muted"
-                    },
-                    {
-                      "type": "text",
-                      "id": "tmauT",
-                      "name": "Import Source",
-                      "fill": "$text-primary",
-                      "content": "Apple Watch",
-                      "fontFamily": "$font-body",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
-                    },
-                    {
-                      "type": "text",
-                      "id": "DWrdZ",
-                      "name": "Import Date",
-                      "fill": "$text-muted",
-                      "content": "2024-06-05",
-                      "fontFamily": "$font-body",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
-                    },
-                    {
-                      "type": "text",
-                      "id": "dXEFG",
-                      "name": "Import Count",
-                      "fill": "$text-secondary",
-                      "content": "3 条记录",
-                      "fontFamily": "$font-body",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "ypFcF",
-                  "name": "Import Row",
-                  "width": "fill_container",
-                  "gap": 8,
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "icon",
-                      "id": "Mhe1T",
-                      "name": "Import Icon",
-                      "width": 16,
-                      "height": 16,
-                      "icon": "download",
-                      "library": "lucide",
-                      "fill": "$text-muted"
-                    },
-                    {
-                      "type": "text",
-                      "id": "sciXJ",
-                      "name": "Import Source",
-                      "fill": "$text-primary",
-                      "content": "Apple Watch",
-                      "fontFamily": "$font-body",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
-                    },
-                    {
-                      "type": "text",
-                      "id": "N4vWP",
-                      "name": "Import Date",
-                      "fill": "$text-muted",
-                      "content": "2024-06-04",
-                      "fontFamily": "$font-body",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
-                    },
-                    {
-                      "type": "text",
-                      "id": "PUmsQ",
-                      "name": "Import Count",
-                      "fill": "$text-secondary",
-                      "content": "2 条记录",
-                      "fontFamily": "$font-body",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "VgxzL",
-                  "name": "Import Row",
-                  "width": "fill_container",
-                  "gap": 8,
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "icon",
-                      "id": "bVp2c",
-                      "name": "Import Icon",
-                      "width": 16,
-                      "height": 16,
-                      "icon": "download",
-                      "library": "lucide",
-                      "fill": "$text-muted"
-                    },
-                    {
-                      "type": "text",
-                      "id": "NJjSt",
-                      "name": "Import Source",
-                      "fill": "$text-primary",
-                      "content": "Apple Watch",
-                      "fontFamily": "$font-body",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
-                    },
-                    {
-                      "type": "text",
-                      "id": "kj1Kr",
-                      "name": "Import Date",
-                      "fill": "$text-muted",
-                      "content": "2024-06-03",
-                      "fontFamily": "$font-body",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
-                    },
-                    {
-                      "type": "text",
-                      "id": "DxYgA",
-                      "name": "Import Count",
-                      "fill": "$text-secondary",
-                      "content": "1 条记录",
-                      "fontFamily": "$font-body",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "id": "atASn",
-          "type": "ref",
-          "ref": "PfeG4",
-          "name": "TabBar",
-          "width": "fill_container"
-        }
-      ]
     }
   ],
   "variables": {
     "accent-primary": {
       "type": "color",
-      "value": "#FF5C00FF"
+      "value": "#FF5F1F"
     },
     "accent-secondary": {
       "type": "color",
-      "value": "#FF8533FF"
+      "value": "#FF7B3D"
     },
     "accent-tertiary": {
       "type": "color",
-      "value": "#FFB380FF"
+      "value": "#FFB380"
     },
     "bg-card": {
       "type": "color",
-      "value": "#1A1A1AFF"
+      "value": "#121212"
     },
     "bg-primary": {
       "type": "color",
-      "value": "#0A0A0AFF"
+      "value": "#080808"
     },
     "bg-secondary": {
       "type": "color",
-      "value": "#141414FF"
+      "value": "#0E0E0E"
     },
     "border-subtle": {
       "type": "color",
-      "value": "#FFFFFF1A"
+      "value": "#FFFFFF0D"
     },
     "font-body": {
       "type": "string",
@@ -7169,15 +7566,47 @@
     },
     "text-muted": {
       "type": "color",
-      "value": "#555555FF"
+      "value": "#5C5C5C"
     },
     "text-primary": {
       "type": "color",
-      "value": "#FFFFFFFF"
+      "value": "#FFFFFF"
     },
     "text-secondary": {
       "type": "color",
-      "value": "#888888FF"
+      "value": "#9E9E9E"
+    },
+    "accent-glow": {
+      "type": "color",
+      "value": "#FF5F1F33"
+    },
+    "bg-card-hover": {
+      "type": "color",
+      "value": "#1A1A1A"
+    },
+    "border-card": {
+      "type": "color",
+      "value": "#FFFFFF12"
+    },
+    "danger": {
+      "type": "color",
+      "value": "#EF4444"
+    },
+    "font-mono": {
+      "type": "string",
+      "value": "Geist Mono"
+    },
+    "spacing-2xl": {
+      "type": "number",
+      "value": 48
+    },
+    "success": {
+      "type": "color",
+      "value": "#22C55E"
+    },
+    "warning": {
+      "type": "color",
+      "value": "#F59E0B"
     }
   }
 }

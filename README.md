@@ -55,6 +55,11 @@
 
  改为个人环境变量
 
+### Auth
+
+ 生成 Auth 表
+ `npx auth migrate`
+
 ### dev 模式启动
 
  `pnpm run dev`
