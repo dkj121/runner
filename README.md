@@ -58,7 +58,11 @@
 ### Auth
 
  生成 Auth 表
- `npx auth migrate`
+ `npx auth generate`
+ 或
+ `pnpm dlx auth@latest generate`
+ 或
+ `bun x auth@latest generate`
 
 ### dev 模式启动
 
