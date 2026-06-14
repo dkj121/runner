@@ -1,17 +1,20 @@
 {
-    "recommendations": [
-        "dbaeumer.vscode-eslint",
-        "streetsidesoftware.code-spell-checker",
-        "editorconfig.editorconfig",
-        "esbenp.prettier-vscode",
-        "tailwindlabs.vscode-tailwindcss",
-        "chrisnoring.node-snippets",
-        "JasonNutter.search-node-modules",
-        "christian-kohler.path-intellisense",
-        "pflannery.vscode-versionlens",
-        "vitest.vitest",
-        "alexander.errorlens",
-				"Postman.postman-for-vscode",
-				"highagency.pencildev"
-    ]
+	"recommendations": [
+		"dbaeumer.vscode-eslint",
+		"streetsidesoftware.code-spell-checker",
+		"editorconfig.editorconfig",
+		"esbenp.prettier-vscode",
+		"tailwindlabs.vscode-tailwindcss",
+		"chrisnoring.node-snippets",
+		"JasonNutter.search-node-modules",
+		"christian-kohler.path-intellisense",
+		"pflannery.vscode-versionlens",
+		"vitest.vitest",
+		"alexander.errorlens",
+		"highagency.pencildev",
+		"prisma.prisma-insider",
+		"cweijan.vscode-database-client2",
+		"redhat.vscode-yaml",
+		"humao.rest-client"
+	]
 }

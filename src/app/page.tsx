@@ -10,7 +10,9 @@ export default function Home() {
 			<div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
 				<div className="rounded-xl border p-4">
 					<div className="text-lg font-semibold">即时定位</div>
-					<div className="mt-1 text-sm text-gray-500">实时共享位置，轻松汇合</div>
+					<div className="mt-1 text-sm text-gray-500">
+						实时共享位置，轻松汇合
+					</div>
 				</div>
 				<div className="rounded-xl border p-4">
 					<div className="text-lg font-semibold">跑团社交</div>

@@ -43,32 +43,26 @@
 
 ### 下载依赖
 
- `pnpm install //recommend~`
- 或
- `npm install`
- 或
- `yarn install`
+`pnpm install //recommend~`
+或
+`npm install`
+或
+`yarn install`
 
 ### .env
 
- `cp .env.example .env`
+`cp .env.example .env`
 
- 改为个人环境变量
-
-### Auth
-
- 生成 Auth 表
- `npx auth generate`
- 或
- `pnpm dlx auth@latest generate`
- 或
- `bun x auth@latest generate`
+改为个人环境变量
 
 ### dev 模式启动
 
- `pnpm run dev`
+数据库部署
+`pnpm prisma:deploy`
+启动服务
+`pnpm run dev`
 
- 输出类似于以下即可
+输出类似于以下即可
 
 ```bash
 
@@ -88,32 +82,31 @@
 ### 项目结构
 
 ```markdown
-
 📂
-├── 📂 src                // 源代码
-│   ├── 📂 app            // app router 代码
-│   │   ├ ……
-│   │   └ 📂 api          // 向外调用 api
-│   ├── 📂 lib            // 库函数
-│   └── 📂 ui             // ui 组件库
+├── 📂 src // 源代码
+│   ├── 📂 app // app router 代码
+│   │ ├ ……
+│   │ └ 📂 api // 向外调用 api
+│   ├── 📂 lib // 库函数
+│   └── 📂 ui // ui 组件库
 │
 ├── 📂 public
 │
-├── 📂 prisma             // ORM 映射配置
+├── 📂 prisma // ORM 映射配置
 ├── 📃 prisma.config.ts
 │
-├── 📃 .env.example       // 环境变量
+├── 📃 .env.example // 环境变量
 │
-├── 📃 tsconfig.json      // ts 配置
+├── 📃 tsconfig.json // ts 配置
 │
-├── 📃 next.config.ts     // next.js 配置
+├── 📃 next.config.ts // next.js 配置
 ├── 📃 next-env.d.ts
 │
-├── 📃 eslint.config.mjs  // eslint 设置
+├── 📃 eslint.config.mjs // eslint 设置
 │
 ├── 📃 postcss.config.mjs // css 配置
 │
-├── 📃 package.json       // 依赖管理
+├── 📃 package.json // 依赖管理
 ├── 📃 pnpm-lock.yaml
 ├── 📃 pnpm-workspace.yaml
 ├── 📃 bun.lock
@@ -122,5 +115,4 @@
 ├── 📃 compose.yaml
 ├── 📃 Dockerfile
 └── 📃 .dockerignore
-
 ```
