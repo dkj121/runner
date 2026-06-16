@@ -1,0 +1,10 @@
+model Verification {
+	id String @id
+	identifier String
+	value String
+	expiresAt DateTime @db.Timestamp(3)
+	createdAt DateTime @db.Timestamp(3)
+	updatedAt DateTime @db.Timestamp(3)
+
+	@@map("verification")
+}
