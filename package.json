@@ -12,7 +12,8 @@
 		"fmt": "prettier --write .",
 		"prisma:generate": "prisma generate",
 		"prisma:dev": "prisma migrate dev",
-		"prisma:deploy": "prisma migrate deploy"
+		"prisma:deploy": "prisma migrate deploy",
+		"prisma:fmt": "prisma format"
 	},
 	"dependencies": {
 		"@neondatabase/serverless": "^1.1.0",

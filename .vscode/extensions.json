@@ -12,7 +12,7 @@
 		"vitest.vitest",
 		"alexander.errorlens",
 		"highagency.pencildev",
-		"prisma.prisma-insider",
+		"prisma.prisma",
 		"cweijan.vscode-database-client2",
 		"redhat.vscode-yaml",
 		"humao.rest-client"
