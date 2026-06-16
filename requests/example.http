@@ -1,0 +1,26 @@
+GET https://github.com/Huachao/vscode-restclient
+
+Accept: application/json
+
+###
+
+POST https://github.com/Huachao/vscode-restclient
+Content-Type: application/json
+
+{
+	"title": "foo",
+	"body": "bar",
+	"userId": 1
+}
+
+###
+
+PUT https://github.com/Huachao/vscode-restclient
+Content-Type: application/json
+
+{
+	"id": 1,
+	"title": "foo",
+	"body": "bar",
+	"userId": 1
+}
