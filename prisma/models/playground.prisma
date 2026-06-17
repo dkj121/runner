@@ -4,13 +4,14 @@ enum PlayGroundVisibility {
 }
 
 model PlayGround {
-  id                   String                @id
-  name                 String
-  visibility           PlayGroundVisibility
-  users                PlayGroundUser[]
-  createdAt            DateTime              @db.Timestamp(3)
-  updatedAt            DateTime              @db.Timestamp(3)
-  playGroundCallRecord PlayGroundCallRecord?
+  id          String                 @id @default(cuid())
+  name        String
+  visibility  PlayGroundVisibility
+  users       PlayGroundUser[]
+  callRecords PlayGroundCallRecord[]
+  createdAt   DateTime               @db.Timestamp(3)
+  updatedAt   DateTime               @db.Timestamp(3)
 
+  @@index([name], map: "idx_playground_name")
   @@map("playground")
 }
