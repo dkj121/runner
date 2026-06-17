@@ -1,0 +1,22 @@
+model PlayGroundCallRecord {
+  id           String       @id
+  playGround   PlayGround   @relation(fields: [playGroundId], references: [id])
+  playGroundId String
+  callRecords  CallRecord[]
+  createdAt    DateTime     @db.Timestamp(3)
+  updatedAt    DateTime     @db.Timestamp(3)
+
+  @@unique([playGroundId])
+  @@map("playground_call_record")
+}
+
+model CallRecord {
+  id                     String                @id
+  callUrl                String                @unique
+  createdAt              DateTime              @db.Timestamp(3)
+  updatedAt              DateTime              @db.Timestamp(3)
+  playGroundCallRecord   PlayGroundCallRecord? @relation(fields: [playGroundCallRecordId], references: [id])
+  playGroundCallRecordId String?
+
+  @@map("call_record")
+}
