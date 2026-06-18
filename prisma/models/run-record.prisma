@@ -6,9 +6,9 @@ model RunRecord {
   playGroundId String?
   startTime    DateTime
   endTime      DateTime?
-  duration     Int         // 秒
-  distance     Float       // 公里
-  avgPace      String      // 如 "5:30 /km"
+  duration     Int       @default(0) // 秒
+  distance     Float     @default(0) // 公里
+  avgPace      String    @default("") // 如 "5:30 /km"
   points       TrackPoint[]
   createdAt    DateTime    @default(now())
 
