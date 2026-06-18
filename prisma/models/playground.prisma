@@ -8,6 +8,7 @@ model PlayGround {
   name      String
   role      PlayGroundRule
   users     PlayGroundUser[]
+  runRecords RunRecord[]
   createdAt DateTime         @db.Timestamp(3)
   updatedAt DateTime         @db.Timestamp(3)
 
