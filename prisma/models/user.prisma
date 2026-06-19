@@ -7,7 +7,6 @@ model User {
   sessions        Session[]
   accounts        Account[]
   playGroundUsers PlayGroundUser[]
-  spotRecords     SpotRecord[]
   schedule        UserSchedule?
   createdAt       DateTime         @db.Timestamp(3)
   updatedAt       DateTime         @db.Timestamp(3)
@@ -24,7 +23,7 @@ enum PlayGroundUserRole {
 
 model PlayGroundUser {
   id           String             @id @default(cuid())
-  user         User               @relation(fields: [userId], references: [id])
+  user         User               @relation(fields: [userId], references: [id], map: "playground_user_userid_fkey")
   userId       String
   playGround   PlayGround         @relation(fields: [playGroundId], references: [id], map: "playground_user_playgroundid_fkey")
   playGroundId String
