@@ -1,0 +1,10 @@
+model TrackPoint {
+  id        Int       @id @default(autoincrement())
+  record    RunRecord @relation(fields: [recordId], references: [id])
+  recordId  String
+  lat       Float
+  lng       Float
+  timestamp BigInt    // unix 毫秒
+
+  @@map("track_point")
+}

@@ -1,4 +1,12 @@
 services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
   runner:
     image: runner
     build:
@@ -8,3 +16,6 @@ services:
       NODE_ENV: production
     ports:
       - 3000:3000
+
+volumes:
+  redis_data:
