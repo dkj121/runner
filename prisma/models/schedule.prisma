@@ -1,0 +1,63 @@
+enum ScheduleType {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum WeekDay {
+  SUNDAY
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+}
+
+model UserSchedule {
+  id           String             @id @default(cuid())
+  scheduleType ScheduleType?
+  user         User               @relation(fields: [userId], references: [id], map: "user_schedule_userid_fkey")
+  userId       String             @unique
+  spotDates    UserScheduleSpot[]
+  createdAt    DateTime           @db.Timestamp(3)
+  updatedAt    DateTime           @db.Timestamp(3)
+
+  @@map("user_schedule")
+}
+
+model PlayGroundSchedule {
+  id           String                   @id @default(cuid())
+  scheduleType ScheduleType?
+  playGround   PlayGround               @relation(fields: [playGroundId], references: [id], map: "playground_schedule_playgroundid_fkey")
+  playGroundId String                   @unique
+  spotDates    PlayGroundScheduleSpot[]
+  createdAt    DateTime                 @db.Timestamp(3)
+  updatedAt    DateTime                 @db.Timestamp(3)
+
+  @@map("playground_schedule")
+}
+
+model UserScheduleSpot {
+  id             String       @id @default(cuid())
+  weekDay        WeekDay
+  time           DateTime
+  userSchedule   UserSchedule @relation(fields: [userScheduleId], references: [id], map: "user_schedule_spot_userscheduleid_fkey")
+  userScheduleId String
+  createdAt      DateTime     @db.Timestamp(3)
+  updatedAt      DateTime     @db.Timestamp(3)
+
+  @@map("user_schedule_spot")
+}
+
+model PlayGroundScheduleSpot {
+  id                   String             @id @default(cuid())
+  weekDay              WeekDay
+  time                 DateTime
+  playGroundSchedule   PlayGroundSchedule @relation(fields: [playGroundScheduleId], references: [id], map: "playground_schedule_spot_playgroundscheduleid_fkey")
+  playGroundScheduleId String
+  createdAt            DateTime           @db.Timestamp(3)
+  updatedAt            DateTime           @db.Timestamp(3)
+
+  @@map("playground_schedule_spot")
+}

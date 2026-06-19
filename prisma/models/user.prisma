@@ -7,6 +7,8 @@ model User {
   sessions        Session[]
   accounts        Account[]
   playGroundUsers PlayGroundUser[]
+  spotRecords     SpotRecord[]
+  schedule        UserSchedule?
   createdAt       DateTime         @db.Timestamp(3)
   updatedAt       DateTime         @db.Timestamp(3)
 
@@ -24,12 +26,12 @@ model PlayGroundUser {
   id           String             @id @default(cuid())
   user         User               @relation(fields: [userId], references: [id])
   userId       String
-  playGround   PlayGround         @relation(fields: [playGroundId], references: [id])
+  playGround   PlayGround         @relation(fields: [playGroundId], references: [id], map: "playground_user_playgroundid_fkey")
   playGroundId String
   role         PlayGroundUserRole
   createdAt    DateTime           @db.Timestamp(3)
   updatedAt    DateTime           @db.Timestamp(3)
 
-  @@unique([userId, playGroundId])
+  @@unique([userId, playGroundId], name: "unique_user_playground")
   @@map("playground_user")
 }

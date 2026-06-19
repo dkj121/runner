@@ -1,0 +1,9 @@
+model SpotRecord {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], map: "playground_call_record_userid_fkey")
+  userId    String
+  createdAt DateTime @db.Timestamp(3)
+  updatedAt DateTime @db.Timestamp(3)
+
+  @@map("playground_call_record")
+}

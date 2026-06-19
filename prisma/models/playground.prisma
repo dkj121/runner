@@ -5,10 +5,11 @@ enum PlayGroundVisibility {
 
 model PlayGround {
   id          String                 @id @default(cuid())
-  name        String
-  visibility  PlayGroundVisibility
+  name        String                 @map("name")
+  visibility  PlayGroundVisibility   @map("visibility")
   users       PlayGroundUser[]
-  callRecords PlayGroundCallRecord[]
+  rankinglist PlayGroundRankingList?
+  schedule    PlayGroundSchedule?
   createdAt   DateTime               @db.Timestamp(3)
   updatedAt   DateTime               @db.Timestamp(3)
 
