@@ -10,6 +10,7 @@ model User {
   schedule        UserSchedule?
   createdAt       DateTime         @db.Timestamp(3)
   updatedAt       DateTime         @db.Timestamp(3)
+  runRecords      RunRecord[]
 
   @@index([name], map: "idx_user_name")
   @@index([email], map: "idx_user_email")
