@@ -1,15 +1,36 @@
 model User {
-	id String @id
-	name String
-	email String @unique
-	emailVerified Boolean
-	image String?
-	sessions Session[]
-	accounts Account[]
-	playGroundUsers PlayGroundUser[]
-	runRecords      RunRecord[]
-	createdAt DateTime @db.Timestamp(3)
-	updatedAt DateTime @db.Timestamp(3)
+  id              String           @id @default(cuid())
+  name            String
+  email           String           @unique
+  emailVerified   Boolean
+  image           String?
+  sessions        Session[]
+  accounts        Account[]
+  playGroundUsers PlayGroundUser[]
+  schedule        UserSchedule?
+  createdAt       DateTime         @db.Timestamp(3)
+  updatedAt       DateTime         @db.Timestamp(3)
 
-	@@map("user")
+  @@index([name], map: "idx_user_name")
+  @@index([email], map: "idx_user_email")
+  @@map("user")
+}
+
+enum PlayGroundUserRole {
+  OWNER
+  USER
+}
+
+model PlayGroundUser {
+  id           String             @id @default(cuid())
+  user         User               @relation(fields: [userId], references: [id], map: "playground_user_userid_fkey")
+  userId       String
+  playGround   PlayGround         @relation(fields: [playGroundId], references: [id], map: "playground_user_playgroundid_fkey")
+  playGroundId String
+  role         PlayGroundUserRole
+  createdAt    DateTime           @db.Timestamp(3)
+  updatedAt    DateTime           @db.Timestamp(3)
+
+  @@unique([userId, playGroundId], name: "unique_user_playground")
+  @@map("playground_user")
 }

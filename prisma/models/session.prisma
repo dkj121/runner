@@ -1,13 +1,13 @@
 model Session {
-	id String @id
-	user User @relation(fields: [userId], references: [id])
-	userId String
-	token String @unique
-	expiresAt DateTime @db.Timestamp(3)
-	ipAddress String?
-	userAgent String?
-	createdAt DateTime @db.Timestamp(3)
-	updatedAt DateTime @db.Timestamp(3)
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  token     String   @unique
+  expiresAt DateTime @db.Timestamp(3)
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @db.Timestamp(3)
+  updatedAt DateTime @db.Timestamp(3)
 
-	@@map("session")
+  @@map("session")
 }

@@ -1,34 +1,18 @@
-enum PlayGroundRule {
+enum PlayGroundVisibility {
   PRIVATE
   PUBLIC
 }
 
 model PlayGround {
-  id        String           @id
-  name      String
-  role      PlayGroundRule
-  users     PlayGroundUser[]
-  runRecords RunRecord[]
-  createdAt DateTime         @db.Timestamp(3)
-  updatedAt DateTime         @db.Timestamp(3)
+  id          String                 @id @default(cuid())
+  name        String                 @map("name")
+  visibility  PlayGroundVisibility   @map("visibility")
+  users       PlayGroundUser[]
+  rankinglist PlayGroundRankingList?
+  schedule    PlayGroundSchedule?
+  createdAt   DateTime               @db.Timestamp(3)
+  updatedAt   DateTime               @db.Timestamp(3)
 
+  @@index([name], map: "idx_playground_name")
   @@map("playground")
-}
-
-enum PlayGroundUserRole {
-  OWNER
-  USER
-}
-
-model PlayGroundUser {
-  id           String             @id
-  user         User               @relation(fields: [userId], references: [id])
-  userId       String
-  playGround   PlayGround         @relation(fields: [playGroundId], references: [id])
-  playGroundId String
-  role         PlayGroundUserRole
-  createdAt    DateTime           @db.Timestamp(3)
-  updatedAt    DateTime           @db.Timestamp(3)
-
-  @@map("playground_user")
 }
