@@ -1,6 +1,6 @@
 model Session {
   id        String   @id @default(cuid())
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], map: "session_user_id_fkey")
   userId    String
   token     String   @unique
   expiresAt DateTime @db.Timestamp(3)
