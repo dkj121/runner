@@ -27,7 +27,6 @@ model RunRecord {
   createdAt               DateTime               @db.Timestamp(3)
   updatedAt               DateTime               @db.Timestamp(3)
 
-
   @@index([userId], map: "idx_run_record_user_id")
   @@index([playGroundRankingListId], map: "idx_run_record_playground_rankinglist_id")
   @@map("run_record")
