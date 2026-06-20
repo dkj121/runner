@@ -26,8 +26,7 @@ model RunRecord {
   avgPace                 String                 @default("")
   createdAt               DateTime               @db.Timestamp(3)
   updatedAt               DateTime               @db.Timestamp(3)
-  playGround              PlayGround?            @relation(fields: [playGroundId], references: [id])
-  playGroundId            String?
+
 
   @@index([userId], map: "idx_run_record_user_id")
   @@index([playGroundRankingListId], map: "idx_run_record_playground_rankinglist_id")
