@@ -12,6 +12,7 @@ model PlayGround {
   schedule    PlayGroundSchedule?
   createdAt   DateTime               @db.Timestamp(3)
   updatedAt   DateTime               @db.Timestamp(3)
+  runRecords  RunRecord[]
 
   @@index([name], map: "idx_playground_name")
   @@map("playground")

@@ -8,9 +8,10 @@ model User {
   accounts        Account[]
   playGroundUsers PlayGroundUser[]
   schedule        UserSchedule?
+  runRecords      RunRecord[]
+  totalRunRecord  TotalRunRecord?
   createdAt       DateTime         @db.Timestamp(3)
   updatedAt       DateTime         @db.Timestamp(3)
-  runRecords      RunRecord[]
 
   @@index([name], map: "idx_user_name")
   @@index([email], map: "idx_user_email")
@@ -33,5 +34,7 @@ model PlayGroundUser {
   updatedAt    DateTime           @db.Timestamp(3)
 
   @@unique([userId, playGroundId], name: "unique_user_playground")
+  @@index([userId], map: "idx_playground_user_userid")
+  @@index([playGroundId], map: "idx_playground_user_playgroundid")
   @@map("playground_user")
 }
