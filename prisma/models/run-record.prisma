@@ -1,16 +1,14 @@
 model RunRecord {
-  id           String       @id @default(cuid())
-  user         User         @relation(fields: [userId], references: [id], map: "run_record_user_id_fkey")
-  userId       String
-  playGround   PlayGround?  @relation(fields: [playGroundId], references: [id], map: "run_record_play_ground_id_fkey")
-  playGroundId String?
-  startTime    DateTime
-  endTime      DateTime?
-  duration     Int          @default(0) // 秒
-  distance     Float        @default(0) // 公里
-  avgPace      String       @default("") // 如 "5:30 /km"
-  points       TrackPoint[]
-  createdAt    DateTime     @default(now())
+  id        String    @id @default(cuid())
+  user      User      @relation(fields: [userId], references: [id], map: "run_record_user_id_fkey")
+  userId    String
+  startTime DateTime
+  endTime   DateTime?
+  duration  Int       @default(0)
+  distance  Float     @default(0)
+  avgPace   String    @default("")
+  createdAt DateTime  @db.Timestamp(3)
+  updatedAt DateTime  @db.Timestamp(3)
 
   @@map("run_record")
 }
