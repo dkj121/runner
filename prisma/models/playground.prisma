@@ -1,0 +1,18 @@
+enum PlayGroundVisibility {
+  PRIVATE
+  PUBLIC
+}
+
+model PlayGround {
+  id          String                 @id @default(cuid())
+  name        String                 @map("name")
+  visibility  PlayGroundVisibility   @default(PUBLIC) @map("visibility")
+  users       PlayGroundUser[]
+  rankinglist PlayGroundRankingList?
+  schedule    PlayGroundSchedule?
+  createdAt   DateTime               @db.Timestamp(3)
+  updatedAt   DateTime               @db.Timestamp(3)
+
+  @@index([name], map: "idx_playground_name")
+  @@map("playground")
+}

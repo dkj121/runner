@@ -1,0 +1,71 @@
+enum ScheduleType {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum WeekDay {
+  SUNDAY
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+}
+
+model UserSchedule {
+  id           String             @id @default(cuid())
+  scheduleType ScheduleType?
+  user         User               @relation(fields: [userId], references: [id], map: "user_schedule_userid_fkey")
+  userId       String
+  spotDates    UserScheduleSpot[]
+  createdAt    DateTime           @db.Timestamp(3)
+  updatedAt    DateTime           @db.Timestamp(3)
+
+  @@unique([userId], name: "unique_user_schedule_user_id")
+  @@index([userId], map: "idx_user_schedule_user_id")
+  @@map("user_schedule")
+}
+
+model PlayGroundSchedule {
+  id           String                   @id @default(cuid())
+  scheduleType ScheduleType?
+  playGround   PlayGround               @relation(fields: [playGroundId], references: [id], map: "playground_schedule_playgroundid_fkey")
+  playGroundId String
+  spotDates    PlayGroundScheduleSpot[]
+  createdAt    DateTime                 @db.Timestamp(3)
+  updatedAt    DateTime                 @db.Timestamp(3)
+
+  @@unique([playGroundId], name: "unique_playground_schedule_playground_id")
+  @@index([playGroundId], map: "idx_playground_schedule_playground_id")
+  @@map("playground_schedule")
+}
+
+model UserScheduleSpot {
+  id             String       @id @default(cuid())
+  weekDay        WeekDay
+  date           DateTime     @db.Date
+  time           DateTime     @db.Time
+  userSchedule   UserSchedule @relation(fields: [userScheduleId], references: [id], map: "user_schedule_spot_userscheduleid_fkey")
+  userScheduleId String
+  createdAt      DateTime     @db.Timestamp(3)
+  updatedAt      DateTime     @db.Timestamp(3)
+
+  @@index([userScheduleId], map: "idx_user_schedule_spot_userschedule_id")
+  @@map("user_schedule_spot")
+}
+
+model PlayGroundScheduleSpot {
+  id                   String             @id @default(cuid())
+  weekDay              WeekDay
+  date                 DateTime           @db.Date
+  time                 DateTime           @db.Time
+  playGroundSchedule   PlayGroundSchedule @relation(fields: [playGroundScheduleId], references: [id], map: "playground_schedule_spot_playgroundscheduleid_fkey")
+  playGroundScheduleId String
+  createdAt            DateTime           @db.Timestamp(3)
+  updatedAt            DateTime           @db.Timestamp(3)
+
+  @@index([playGroundScheduleId], map: "idx_playground_schedule_spot_playground_schedule_id")
+  @@map("playground_schedule_spot")
+}

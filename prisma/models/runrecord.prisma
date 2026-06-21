@@ -1,0 +1,33 @@
+model TotalRunRecord {
+  id            String   @id @default(cuid())
+  user          User     @relation(fields: [userId], references: [id], map: "total_run_record_user_id_fkey")
+  userId        String
+  totalTime     Int      @default(0)
+  totalDistance Float    @default(0)
+  avgPace       String   @default("")
+  createdAt     DateTime @db.Timestamp(3)
+  updatedAt     DateTime @db.Timestamp(3)
+
+  @@unique([userId], name: "unique_total_run_record_user_id")
+  @@index([userId], map: "idx_total_run_record_user_id")
+  @@map("total_run_record")
+}
+
+model RunRecord {
+  id                      String                 @id @default(cuid())
+  user                    User                   @relation(fields: [userId], references: [id], map: "run_record_user_id_fkey")
+  userId                  String
+  playGroundRankingList   PlayGroundRankingList? @relation(fields: [playGroundRankingListId], references: [id], map: "run_record_playground_rankinglist_id_fkey")
+  playGroundRankingListId String?
+  startTime               DateTime
+  endTime                 DateTime?
+  duration                Int                    @default(0)
+  distance                Float                  @default(0)
+  avgPace                 String                 @default("")
+  createdAt               DateTime               @db.Timestamp(3)
+  updatedAt               DateTime               @db.Timestamp(3)
+
+  @@index([userId], map: "idx_run_record_user_id")
+  @@index([playGroundRankingListId], map: "idx_run_record_playground_rankinglist_id")
+  @@map("run_record")
+}

@@ -1,0 +1,12 @@
+model PlayGroundRankingList {
+  id           String      @id @default(cuid())
+  playGround   PlayGround  @relation(fields: [playGroundId], references: [id], map: "playground_rankinglist_playgroundid_fkey")
+  playGroundId String
+  runRecords   RunRecord[]
+  createdAt    DateTime    @db.Timestamp(3)
+  updatedAt    DateTime    @db.Timestamp(3)
+
+  @@unique([playGroundId], name: "unique_playground_rankinglist_playground_id")
+  @@index([playGroundId], map: "idx_playground_rankinglist_playground_id")
+  @@map("playground_rankinglist")
+}

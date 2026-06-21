@@ -1,0 +1,18 @@
+model Account {
+  id                    String    @id @default(cuid())
+  user                  User      @relation(fields: [userId], references: [id], map: "account_user_id_fkey")
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime? @db.Timestamp(3)
+  refreshTokenExpiresAt DateTime? @db.Timestamp(3)
+  scope                 String?
+  idToken               String?
+  password              String?
+  createdAt             DateTime  @db.Timestamp(3)
+  updatedAt             DateTime  @db.Timestamp(3)
+
+  @@map("account")
+}
