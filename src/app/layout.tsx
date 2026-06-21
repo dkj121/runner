@@ -3,7 +3,7 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -30,9 +30,7 @@ export default function RootLayout({
 			lang="zh-CN"
 			className={`dark ${inter.variable} ${geistSans.variable} ${geistMono.variable}`}
 		>
-			<body className="antialiased">
-				{children}
-			</body>
+			<body className="antialiased">{children}</body>
 		</html>
 	);
 }
