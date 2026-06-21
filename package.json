@@ -19,15 +19,13 @@
 		"prisma:fmt": "prisma format"
 	},
 	"dependencies": {
-		"@neondatabase/serverless": "^1.1.0",
-		"@prisma/adapter-mariadb": "^7.8.0",
-		"@prisma/adapter-neon": "^7.8.0",
 		"@prisma/client": "^7.8.0",
 		"better-auth": "^1.6.17",
 		"dotenv": "^17.4.2",
 		"next": "15.5.18",
 		"react": "19.1.0",
-		"react-dom": "19.1.0"
+		"react-dom": "19.1.0",
+		"redis": "^6.0.0"
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3",

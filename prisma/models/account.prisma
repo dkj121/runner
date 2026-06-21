@@ -1,6 +1,6 @@
 model Account {
-  id                    String    @id
-  user                  User      @relation(fields: [userId], references: [id])
+  id                    String    @id @default(cuid())
+  user                  User      @relation(fields: [userId], references: [id], map: "account_user_id_fkey")
   userId                String
   accountId             String
   providerId            String
