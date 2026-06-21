@@ -4,8 +4,8 @@
 	"private": true,
 	"type": "module",
 	"prisma": {
-    "schema": "./prisma"
-  },
+		"schema": "./prisma"
+	},
 	"scripts": {
 		"dev": "next dev --turbopack",
 		"build": "next build --turbopack",
