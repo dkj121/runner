@@ -5,8 +5,8 @@ model TotalRunRecord {
   totalTime     Int      @default(0)
   totalDistance Float    @default(0)
   avgPace       String   @default("")
-  createdAt     DateTime @db.Timestamp(3)
-  updatedAt     DateTime @db.Timestamp(3)
+  createdAt     DateTime @default(now()) @db.Timestamp(3)
+  updatedAt     DateTime @updatedAt @db.Timestamp(3)
 
   @@unique([userId], name: "unique_total_run_record_user_id")
   @@index([userId], map: "idx_total_run_record_user_id")
@@ -24,8 +24,8 @@ model RunRecord {
   duration                Int                    @default(0)
   distance                Float                  @default(0)
   avgPace                 String                 @default("")
-  createdAt               DateTime               @db.Timestamp(3)
-  updatedAt               DateTime               @db.Timestamp(3)
+  createdAt               DateTime               @default(now()) @db.Timestamp(3)
+  updatedAt               DateTime               @updatedAt @db.Timestamp(3)
 
   @@index([userId], map: "idx_run_record_user_id")
   @@index([playGroundRankingListId], map: "idx_run_record_playground_rankinglist_id")

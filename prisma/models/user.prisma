@@ -10,8 +10,8 @@ model User {
   schedule        UserSchedule?
   runRecords      RunRecord[]
   totalRunRecord  TotalRunRecord?
-  createdAt       DateTime         @db.Timestamp(3)
-  updatedAt       DateTime         @db.Timestamp(3)
+  createdAt       DateTime         @default(now()) @db.Timestamp(3)
+  updatedAt       DateTime         @updatedAt @db.Timestamp(3)
 
   @@index([name], map: "idx_user_name")
   @@index([email], map: "idx_user_email")
@@ -30,8 +30,8 @@ model PlayGroundUser {
   playGround   PlayGround         @relation(fields: [playGroundId], references: [id], map: "playground_user_playgroundid_fkey")
   playGroundId String
   role         PlayGroundUserRole
-  createdAt    DateTime           @db.Timestamp(3)
-  updatedAt    DateTime           @db.Timestamp(3)
+  createdAt    DateTime           @default(now()) @db.Timestamp(3)
+  updatedAt    DateTime           @updatedAt @db.Timestamp(3)
 
   @@unique([userId, playGroundId], name: "unique_user_playground")
   @@index([userId], map: "idx_playground_user_userid")
