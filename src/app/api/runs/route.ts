@@ -1,28 +1,43 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { createRunSession } from "@/lib/run-store";
 
 export async function POST(request: Request) {
-  const body = await request.json();
+  const { userId } = await request.json();
 
-  await prisma.runRecord.create({
-    data: {
-      userId: body.userId,
-      startTime: new Date(body.startTime),
-      endTime: body.endTime ? new Date(body.endTime) : null,
-      duration: body.duration,
-      distance: body.distance,
-      avgPace: body.avgPace,
-      points: {
-        create: body.points.map(
-          (p: { lat: number; lng: number; timestamp: number }) => ({
-            lat: p.lat,
-            lng: p.lng,
-            timestamp: p.timestamp,
-          }),
-        ),
-      },
-    },
+  if (!userId) {
+    return NextResponse.json({ error: "userId required" }, { status: 400 });
+  }
+
+  const record = await prisma.runRecord.create({
+    data: { userId, startTime: new Date() },
   });
 
-  return NextResponse.json({ ok: true });
+  await createRunSession(record.id, userId);
+
+  return NextResponse.json({ runId: record.id });
+}
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const userId = searchParams.get("userId");
+
+  if (!userId) {
+    return NextResponse.json({ error: "userId required" }, { status: 400 });
+  }
+
+  const take = Math.min(Number(searchParams.get("take")) || 20, 100);
+  const skip = Number(searchParams.get("skip")) || 0;
+
+  const [records, total] = await Promise.all([
+    prisma.runRecord.findMany({
+      where: { userId },
+      orderBy: { startTime: "desc" },
+      take,
+      skip,
+    }),
+    prisma.runRecord.count({ where: { userId } }),
+  ]);
+
+  return NextResponse.json({ records, total });
 }

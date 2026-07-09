@@ -1,0 +1,38 @@
+### POST /api/runs - 创建跑步
+# @name createRun
+POST http://localhost:3000/api/runs
+Content-Type: application/json
+
+{
+  "userId": "test-user-1"
+}
+
+###
+
+### POST /api/runs/{id}/points - 推 GPS 点
+POST http://localhost:3000/api/runs/{{createRun.response.body.runId}}/points
+Content-Type: application/json
+
+{
+  "points": [
+    { "lat": 32.041, "lng": 118.784, "timestamp": 1700000000000 },
+    { "lat": 32.042, "lng": 118.785, "timestamp": 1700000005000 },
+    { "lat": 32.043, "lng": 118.786, "timestamp": 1700000010000 }
+  ]
+}
+
+###
+
+### PATCH /api/runs/{id} - 结束跑步
+PATCH http://localhost:3000/api/runs/{{createRun.response.body.runId}}
+Content-Type: application/json
+
+{
+  "userId": "test-user-1",
+  "endTime": "2024-01-01T08:30:00.000Z",
+  "duration": 1861,
+  "distance": 5.23,
+  "avgPace": "5'43\""
+}
+
+###

@@ -1,5 +1,14 @@
 import { NextResponse } from "next/server";
-import { pushPoints } from "@/lib/run-store";
+import { pushPoints, getAllPoints } from "@/lib/run-store";
+
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ runId: string }> },
+) {
+  const { runId } = await params;
+  const points = await getAllPoints(runId);
+  return NextResponse.json({ points });
+}
 
 export async function POST(
   request: Request,

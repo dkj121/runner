@@ -105,7 +105,7 @@ export default function useRunTracker(userId?: string) {
     pointQueue.current = [];
 
     try {
-      const res = await fetch("/api/runs/start", {
+      const res = await fetch("/api/runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: uid }),
@@ -172,8 +172,8 @@ export default function useRunTracker(userId?: string) {
 
     const snapshot = getSnapshot();
     try {
-      await fetch(`/api/runs/${runId}/finish`, {
-        method: "POST",
+      await fetch(`/api/runs/${runId}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: userIdRef.current, ...snapshot }),
       });
