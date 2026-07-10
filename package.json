@@ -19,6 +19,7 @@
 		"prisma:fmt": "prisma format"
 	},
 	"dependencies": {
+		"@prisma/adapter-mariadb": "^7.8.0",
 		"@prisma/client": "^7.8.0",
 		"better-auth": "^1.6.17",
 		"class-variance-authority": "^0.7.1",
