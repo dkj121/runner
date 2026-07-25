@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createRunSession } from "@/lib/run-store";
+import { createRunSession } from "@/lib/gps-cache";
 
 export async function POST(request: Request) {
   const { userId } = await request.json();

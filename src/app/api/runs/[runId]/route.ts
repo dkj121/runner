@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { clearRunSession, getAllPoints } from "@/lib/run-store";
+import { clearRunSession, getAllPoints } from "@/lib/gps-cache";
 
 // ponytail: inline haversine to avoid importing track-calc.ts which triggers amap-sdk (browser-only) on server
 function haversineDistance(
@@ -80,7 +80,7 @@ export async function PATCH(
   { params }: { params: Promise<{ runId: string }> },
 ) {
   const { runId } = await params;
-  const { userId, endTime, duration, distance, avgPace } =
+  const { userId, endTime, duration, distance, avgPace, trackPoints, calories, splits, notes } =
     await request.json();
 
   if (!userId || !endTime) {
@@ -97,6 +97,10 @@ export async function PATCH(
       duration,
       distance,
       avgPace,
+      ...(trackPoints !== undefined && { trackPoints }),
+      ...(calories !== undefined && { calories }),
+      ...(splits !== undefined && { splits }),
+      ...(notes !== undefined && { notes }),
     },
   });
 

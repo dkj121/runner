@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { pushPoints, getAllPoints } from "@/lib/run-store";
+import { pushPoints, getAllPoints } from "@/lib/gps-cache";
 
 export async function GET(
   _request: Request,

@@ -34,7 +34,7 @@ export async function createRunSession(runId: string, userId: string) {
       .set(activeKey(userId), runId, { EX: RUN_TTL })
       .exec();
   } catch (e) {
-    console.error("[run-store] createRunSession:", e);
+    console.error("[gps-cache] createRunSession:", e);
   }
 }
 
@@ -49,7 +49,7 @@ export async function pushPoints(runId: string, points: GpsPoint[]) {
     pipe.expire(key, RUN_TTL);
     await pipe.exec();
   } catch (e) {
-    console.error("[run-store] pushPoints:", e);
+    console.error("[gps-cache] pushPoints:", e);
   }
 }
 
@@ -58,7 +58,7 @@ export async function getAllPoints(runId: string): Promise<GpsPoint[]> {
     const raw = await redis.lRange(pointsKey(runId), 0, -1);
     return raw.reverse().map((s) => JSON.parse(s) as GpsPoint);
   } catch (e) {
-    console.error("[run-store] getAllPoints:", e);
+    console.error("[gps-cache] getAllPoints:", e);
     return [];
   }
 }
@@ -69,7 +69,7 @@ export async function getActiveRunId(
   try {
     return await redis.get(activeKey(userId));
   } catch (e) {
-    console.error("[run-store] getActiveRunId:", e);
+    console.error("[gps-cache] getActiveRunId:", e);
     return null;
   }
 }
@@ -78,7 +78,7 @@ export async function getRunMeta(runId: string) {
   try {
     return (await redis.hGetAll(metaKey(runId))) as Record<string, string> | null;
   } catch (e) {
-    console.error("[run-store] getRunMeta:", e);
+    console.error("[gps-cache] getRunMeta:", e);
     return null;
   }
 }
@@ -87,6 +87,6 @@ export async function clearRunSession(runId: string, userId: string) {
   try {
     await redis.del([metaKey(runId), activeKey(userId)]);
   } catch (e) {
-    console.error("[run-store] clearRunSession:", e);
+    console.error("[gps-cache] clearRunSession:", e);
   }
 }
