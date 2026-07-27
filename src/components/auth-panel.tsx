@@ -175,7 +175,9 @@ export function AuthPanel({ mode }: AuthPanelProps) {
 										onChange={(event) => setPassword(event.target.value)}
 										required
 										minLength={8}
-										autoComplete={isRegister ? "new-password" : "current-password"}
+										autoComplete={
+											isRegister ? "new-password" : "current-password"
+										}
 										placeholder="至少 8 位"
 										className="pl-8"
 									/>
@@ -196,10 +198,15 @@ export function AuthPanel({ mode }: AuthPanelProps) {
 
 							<Button type="submit" className="w-full" disabled={isSubmitting}>
 								{isSubmitting ? (
-									<Loader2Icon className="animate-spin" data-icon="inline-start" />
+									<Loader2Icon
+										className="animate-spin"
+										data-icon="inline-start"
+									/>
 								) : null}
 								{isRegister ? "注册" : "登录"}
-								{!isSubmitting ? <ArrowRightIcon data-icon="inline-end" /> : null}
+								{!isSubmitting ? (
+									<ArrowRightIcon data-icon="inline-end" />
+								) : null}
 							</Button>
 						</form>
 
