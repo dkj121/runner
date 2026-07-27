@@ -85,7 +85,10 @@ export async function getPlayGround(id: string) {
 	});
 	if (!pg) return null;
 	// PUBLIC playgrounds visible to all; PRIVATE require membership
-	if (pg.visibility !== "PUBLIC" && !pg.users.some((u) => u.userId === userId)) {
+	if (
+		pg.visibility !== "PUBLIC" &&
+		!pg.users.some((u) => u.userId === userId)
+	) {
 		throw new Error("Not authorized");
 	}
 	return pg;
@@ -251,7 +254,10 @@ export async function getPlayGroundLeaderboard(playGroundId: string) {
 		include: { users: true },
 	});
 	if (!pg) throw new Error("Not found");
-	if (pg.visibility !== "PUBLIC" && !pg.users.some((u) => u.userId === userId)) {
+	if (
+		pg.visibility !== "PUBLIC" &&
+		!pg.users.some((u) => u.userId === userId)
+	) {
 		throw new Error("Not authorized");
 	}
 
@@ -307,7 +313,9 @@ export async function getPlayGroundLeaderboard(playGroundId: string) {
 
 export async function getPlayGroundMembers(playGroundId: string) {
 	const userId = await getUserId().catch(() => null);
-	const pg = await prisma.playGround.findUnique({ where: { id: playGroundId } });
+	const pg = await prisma.playGround.findUnique({
+		where: { id: playGroundId },
+	});
 	if (!pg) throw new Error("Not found");
 	if (pg.visibility !== "PUBLIC") {
 		const membership = await prisma.playGroundUser.findFirst({
