@@ -1,12 +1,12 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { listMyPlayGrounds } from "@/lib/actions";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Play, ChevronRight, MapPin, Clock } from "lucide-react";
+import { Play, ChevronRight, MapPin } from "lucide-react";
 import Link from "next/link";
 
 export default async function DashboardHome() {

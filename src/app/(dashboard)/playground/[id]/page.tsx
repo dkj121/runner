@@ -2,14 +2,12 @@ import { notFound } from "next/navigation";
 import {
 	getPlayGround,
 	getPlayGroundMembers,
-	getPlayGroundLeaderboard,
-	generateInviteCode,
 	deletePlayGround,
 	leavePlayGround,
 } from "@/lib/actions";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +24,6 @@ import {
 	Play,
 	Trash2,
 	LogOut,
-	Copy,
 	Trophy,
 } from "lucide-react";
 import Link from "next/link";

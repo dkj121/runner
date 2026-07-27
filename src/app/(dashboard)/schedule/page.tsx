@@ -1,14 +1,13 @@
 import { Suspense } from "react";
 import {
-	getPlayGroundSchedule,
 	getUserSchedule,
 	listMyPlayGrounds,
 } from "@/lib/actions";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, ChevronRight, Clock, MapPin } from "lucide-react";
+import { Calendar, ChevronRight, Clock } from "lucide-react";
 import Link from "next/link";
 
 async function ScheduleContent() {

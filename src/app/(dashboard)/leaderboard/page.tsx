@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	Table,
 	TableBody,
@@ -9,11 +8,9 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Medal } from "lucide-react";
-import { getPlayGroundLeaderboard, getPlayGroundMembers } from "@/lib/actions";
+import { getPlayGroundLeaderboard } from "@/lib/actions";
 
 async function LeaderboardContent({ playgroundId }: { playgroundId: string }) {
 	const leaderboard = await getPlayGroundLeaderboard(playgroundId).catch(

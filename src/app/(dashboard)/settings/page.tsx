@@ -1,13 +1,11 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import {
-	User,
 	Settings2,
 	Headphones,
 	Radio,
