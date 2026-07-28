@@ -1,8 +1,5 @@
 import { Suspense } from "react";
-import {
-	getUserSchedule,
-	listMyPlayGrounds,
-} from "@/lib/actions";
+import { getUserSchedule, listMyPlayGrounds } from "@/lib/actions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
