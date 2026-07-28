@@ -1,12 +1,6 @@
 "use client";
 
-import {
-	Home,
-	Activity,
-	ChartNoAxesColumn,
-	Trophy,
-	User,
-} from "lucide-react";
+import { Home, Activity, ChartNoAxesColumn, Trophy, User } from "lucide-react";
 import Link from "next/link";
 
 const tabs = [

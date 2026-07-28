@@ -69,7 +69,7 @@ export default function RunPage() {
 	}
 
 	return (
-		<div className="flex flex-1 flex-col gap-5 px-5 pb-4 pt-4">
+		<div className="flex flex-1 flex-col gap-5 px-5 pt-4 pb-4">
 			<RunMap track={tracker.track} />
 
 			<div className="flex flex-col items-center gap-1">

@@ -12,8 +12,7 @@
 	--font-heading:
 		-apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
 		"Helvetica Neue", Arial, sans-serif;
-	--font-mono:
-		"SF Mono", "Fira Code", "Consolas", "DengXian", monospace;
+	--font-mono: "SF Mono", "Fira Code", "Consolas", "DengXian", monospace;
 
 	/* === shadcn Semantic Tokens === */
 	--color-background: var(--background);

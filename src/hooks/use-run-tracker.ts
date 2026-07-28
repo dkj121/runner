@@ -71,7 +71,10 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 
 			// Auto km split
 			const km = Math.floor(distanceMetersRef.current / 1000);
-			if (km > 0 && km !== Math.floor((distanceMetersRef.current - dist) / 1000)) {
+			if (
+				km > 0 &&
+				km !== Math.floor((distanceMetersRef.current - dist) / 1000)
+			) {
 				const kmDuration = Math.round(
 					(Date.now() - splitStartRef.current) / 1000,
 				);

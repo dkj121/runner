@@ -97,8 +97,7 @@ export default function SummaryPage() {
 						km: s.km,
 						pace: formatPace(s.pace),
 						barH: paceToBarH(s.pace),
-						barColor:
-							paceToBarH(s.pace) >= 70 ? "bg-primary" : "bg-orange-500",
+						barColor: paceToBarH(s.pace) >= 70 ? "bg-primary" : "bg-orange-500",
 					}))
 				: null;
 
@@ -148,7 +147,7 @@ export default function SummaryPage() {
 	];
 
 	return (
-		<div className="flex flex-1 flex-col gap-5 px-5 pb-4 pt-4">
+		<div className="flex flex-1 flex-col gap-5 px-5 pt-4 pb-4">
 			<div className="flex items-center gap-3">
 				<button type="button" onClick={() => router.push("/run")}>
 					<ArrowLeft className="h-5 w-5 text-foreground" />
@@ -182,9 +181,7 @@ export default function SummaryPage() {
 						>
 							{d.value}
 						</span>
-						<span className="text-[11px] text-muted-foreground">
-							{d.label}
-						</span>
+						<span className="text-[11px] text-muted-foreground">{d.label}</span>
 					</Card>
 				))}
 			</div>
@@ -238,9 +235,7 @@ export default function SummaryPage() {
 								<div
 									key={row.km}
 									className={`flex gap-2 px-3.5 py-2.5 ${
-										i < data.splits!.length - 1
-											? "border-t border-border"
-											: ""
+										i < data.splits!.length - 1 ? "border-t border-border" : ""
 									}`}
 								>
 									<div className="flex-1 text-center text-[13px] text-foreground">
