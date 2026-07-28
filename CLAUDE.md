@@ -64,7 +64,7 @@ src/
   app/                    # Next.js App Router
     api/[...all]/route.ts # better-auth handler (all auth routes)
     globals.css           # Theme tokens, Tailwind v4 @theme inline, dark mode (default)
-    layout.tsx            # Root layout with fonts (Inter, Geist, Geist Mono), dark class
+    layout.tsx            # Root layout with dark class
     page.tsx              # Home page (WIP — landing/marketing)
   lib/
     auth.ts               # Server-side better-auth instance (Prisma adapter + MySQL)
