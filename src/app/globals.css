@@ -6,10 +6,10 @@
 
 @theme inline {
 	/* === Font Stack (literal names — Tailwind v4 can't resolve runtime CSS vars) === */
-	--font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+	--font-sans: ui-sans-serif, system-ui, sans-serif;
 	--font-heading:
-		"Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
-	--font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+		ui-sans-serif, system-ui, sans-serif;
+	--font-mono: ui-monospace, monospace;
 
 	/* === shadcn Semantic Tokens === */
 	--color-background: var(--background);
