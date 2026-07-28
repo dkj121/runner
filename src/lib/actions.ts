@@ -1,9 +1,12 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+
+export type OtpPurpose = "sign-in" | "email-verification" | "forget-password";
 
 // ─── helpers ────────────────────────────────────────────
 
@@ -345,4 +348,24 @@ export async function getUserSchedule() {
 		where: { userId },
 		include: { spotDates: { orderBy: { date: "asc" } } },
 	});
+}
+
+export async function resendOtp(email: string, type: OtpPurpose) {
+	const normalizedEmail = email.trim().toLowerCase();
+	if (!normalizedEmail) {
+		return { success: false, error: "请输入邮箱地址。" };
+	}
+
+	try {
+		await auth.api.sendVerificationOTP({
+			body: { email: normalizedEmail, type },
+		});
+		return { success: true, error: null };
+	} catch {
+		return { success: false, error: "验证码发送失败，请稍后重试。" };
+	}
+}
+
+export async function checkSession() {
+	return auth.api.getSession({ headers: await headers() });
 }

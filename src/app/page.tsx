@@ -1,8 +1,30 @@
-import Link from "next/link";
+"use client";
 
+import { useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Loader2Icon } from "lucide-react";
+
+import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
+	const router = useRouter();
+	const { data: session, isPending } = useAuth();
+
+	useEffect(() => {
+		if (session) router.replace("/dashboard");
+	}, [router, session]);
+
+	if (isPending || session) {
+		return (
+			<main className="flex min-h-screen items-center justify-center">
+				<Loader2Icon className="size-6 animate-spin text-primary" />
+				<span className="sr-only">正在加载</span>
+			</main>
+		);
+	}
+
 	return (
 		<div className="flex min-h-screen flex-col items-center justify-center gap-6 px-4 text-center">
 			<h1 className="text-4xl font-bold tracking-tight">Runner</h1>
