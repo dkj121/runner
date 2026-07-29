@@ -18,6 +18,9 @@ type LoaderOpts = {
 let sdkPromise: Promise<AMapSDK> | null = null;
 
 export function loadAMapSDK(): Promise<AMapSDK> {
+	if (!process.env.NEXT_PUBLIC_AMAP_KEY) {
+		throw new Error("NEXT_PUBLIC_AMAP_KEY 未配置");
+	}
 	if (!sdkPromise) {
 		sdkPromise = import("@amap/amap-jsapi-loader").then((mod) =>
 			mod.default.load({

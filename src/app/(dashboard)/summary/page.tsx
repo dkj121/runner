@@ -60,7 +60,7 @@ export default function SummaryPage() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const { data: session } = useSession();
-	const userId = session?.user?.id ?? "cmrz1m86b0000lcsnkhekg50y";
+	const userId = session?.user?.id;
 	const runId = searchParams.get("runId");
 
 	const [data, setData] = useState<RunData | null>(null);

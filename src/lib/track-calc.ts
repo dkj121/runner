@@ -1,20 +1,24 @@
-import { loadAMapSDK, type AMapSDK } from "./amap-sdk";
-
 const EARTH_RADIUS = 6_371_000;
 
 /* AMap GeometryUtil 优先，不可用时用 haversine */
 let geoDistance:
 	| ((lat1: number, lng1: number, lat2: number, lng2: number) => number)
 	| null = null;
+let amapLoaded = false;
 
-loadAMapSDK()
-	.then((AMap: AMapSDK) => {
-		if (AMap?.GeometryUtil?.distance) {
-			geoDistance = (lat1, lng1, lat2, lng2) =>
-				AMap.GeometryUtil.distance([lng1, lat1], [lng2, lat2]);
-		}
-	})
-	.catch(() => {});
+function ensureAMap(): void {
+	if (amapLoaded) return;
+	amapLoaded = true;
+	import("./amap-sdk")
+		.then((mod) => mod.loadAMapSDK())
+		.then((AMap) => {
+			if (AMap?.GeometryUtil?.distance) {
+				geoDistance = (lat1, lng1, lat2, lng2) =>
+					AMap.GeometryUtil.distance([lng1, lat1], [lng2, lat2]);
+			}
+		})
+		.catch(() => {});
+}
 
 /**
  * haversine 公式计算两点间距离（米）
@@ -41,6 +45,7 @@ export function segmentDistance(
 	p2: { lat: number; lng: number },
 ): number {
 	if (geoDistance) return geoDistance(p1.lat, p1.lng, p2.lat, p2.lng);
+	ensureAMap();
 	return haversineDistance(p1.lat, p1.lng, p2.lat, p2.lng);
 }
 

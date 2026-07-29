@@ -20,8 +20,7 @@ const DENSITY_LABEL: Record<Density, string> = {
 export default function RunPage() {
 	const router = useRouter();
 	const { data: session } = useSession();
-	// TODO: 接入 Auth 后删除 fallback，使用 session.user.id
-	const userId = session?.user?.id ?? "cmrz1m86b0000lcsnkhekg50y";
+	const userId = session?.user?.id;
 	const [density, setDensity] = useState<Density>("high");
 	const tracker = useRunTracker(userId, { samplingDensity: density });
 
