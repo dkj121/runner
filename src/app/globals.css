@@ -5,14 +5,17 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-	/* === Font Stack (system fonts — no external downloads, loads instantly in China) === */
-	--font-sans:
-		-apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
-		"Helvetica Neue", Arial, sans-serif;
-	--font-heading:
-		-apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
-		"Helvetica Neue", Arial, sans-serif;
-	--font-mono: "SF Mono", "Fira Code", "Consolas", "DengXian", monospace;
+<<<<<<< HEAD
+	/* === Font Stack (standard system fonts — Tailwind v4 can't resolve runtime CSS vars) === */
+	--font-sans: ui-sans-serif, system-ui, sans-serif;
+	--font-heading: ui-sans-serif, system-ui, sans-serif;
+	--font-mono: ui-monospace, monospace;
+=======
+	/* === Font Stack (literal names — Tailwind v4 can't resolve runtime CSS vars) === */
+	--font-sans: ui-sans-serif, system-ui, sans-serif;
+	--font-heading: ui-sans-serif, system-ui, sans-serif;
+	--font-mono: ui-monospace, monospace;
+>>>>>>> 34fbb52de1f6996149fd5bad5d688406588cccc9
 
 	/* === shadcn Semantic Tokens === */
 	--color-background: var(--background);

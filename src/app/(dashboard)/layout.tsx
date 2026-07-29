@@ -1,28 +1,25 @@
-"use client";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { TabBar } from "@/components/navigation/tab-bar";
 
-import { usePathname } from "next/navigation";
-import { BottomNav } from "@/components/bottom-nav";
-
-const TAB_MAP: Record<string, string> = {
-	"/run": "/run",
-	"/summary": "/records",
-	"/records": "/records",
-	"/rank": "/rank",
-	"/profile": "/profile",
-};
-
-export default function DashboardLayout({
+export default async function DashboardLayout({
 	children,
 }: {
 	children: React.ReactNode;
 }) {
-	const pathname = usePathname();
-	const active = TAB_MAP[pathname] ?? pathname;
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+
+	if (!session) {
+		redirect("/login");
+	}
 
 	return (
-		<div className="mx-auto flex min-h-dvh max-w-md flex-col bg-background">
-			<div className="flex-1">{children}</div>
-			<BottomNav active={active} />
+		<div className="mx-auto flex min-h-[100dvh] max-w-md flex-col bg-background">
+			<main className="flex-1 overflow-y-auto pb-24">{children}</main>
+			<TabBar />
 		</div>
 	);
 }
