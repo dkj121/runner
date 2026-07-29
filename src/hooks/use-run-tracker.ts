@@ -142,7 +142,7 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 			clearInterval(flushTimer.current);
 			flushTimer.current = null;
 		}
-	}, [stopTimer, gps.stopTracking]);
+	}, [stopTimer, gps]);
 
 	const start = useCallback(async () => {
 		const uid = userIdRef.current;
@@ -178,7 +178,7 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 		flushTimer.current = setInterval(flushPoints, 15000);
 		startTimer();
 		gps.startTracking();
-	}, [startTimer, gps.startTracking, flushPoints]);
+	}, [startTimer, gps, flushPoints]);
 
 	const pause = useCallback(() => {
 		clearResources();
@@ -190,7 +190,7 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 		startTimer();
 		gps.startTracking();
 		flushTimer.current = setInterval(flushPoints, 15000);
-	}, [startTimer, gps.startTracking, flushPoints]);
+	}, [startTimer, gps, flushPoints]);
 
 	const getSnapshot = useCallback(() => {
 		const now = Date.now();

@@ -5,17 +5,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-<<<<<<< HEAD
-	/* === Font Stack (standard system fonts — Tailwind v4 can't resolve runtime CSS vars) === */
+	/* === Font Stack (standard system fonts --- Tailwind v4 can't resolve runtime CSS vars) === */
 	--font-sans: ui-sans-serif, system-ui, sans-serif;
 	--font-heading: ui-sans-serif, system-ui, sans-serif;
 	--font-mono: ui-monospace, monospace;
-=======
-	/* === Font Stack (literal names — Tailwind v4 can't resolve runtime CSS vars) === */
-	--font-sans: ui-sans-serif, system-ui, sans-serif;
-	--font-heading: ui-sans-serif, system-ui, sans-serif;
-	--font-mono: ui-monospace, monospace;
->>>>>>> 34fbb52de1f6996149fd5bad5d688406588cccc9
 
 	/* === shadcn Semantic Tokens === */
 	--color-background: var(--background);
