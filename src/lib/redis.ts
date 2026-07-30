@@ -1,16 +1,36 @@
-import "dotenv/config";
-import { createClient } from "redis";
+import "server-only";
+import { createClient, type RedisClientType } from "redis";
 
-export const redis = createClient({
-	url:
+let client: RedisClientType | null = null;
+let connecting: Promise<RedisClientType> | null = null;
+
+function getUrl(): string {
+	return (
 		process.env.REDIS_URL ||
-		`redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
-	password: process.env.REDIS_ACL_PASSWORD || undefined,
-});
+		`redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`
+	);
+}
 
-redis.on("error", (err) => console.error("[redis] error:", err));
+async function connect(): Promise<RedisClientType> {
+	const url = getUrl();
+	const c = createClient({
+		url,
+		password: process.env.REDIS_ACL_PASSWORD || undefined,
+	});
+	c.on("error", (err) => console.error("[redis] error:", err));
+	await c.connect();
+	return c;
+}
 
-redis.connect().catch((err) => {
-	console.error("[redis] connect failed:", err);
-	process.exit(1);
-});
+export async function getRedis(): Promise<RedisClientType> {
+	if (client) return client;
+	if (!connecting) {
+		connecting = connect().catch((err) => {
+			connecting = null;
+			client = null;
+			throw err;
+		});
+	}
+	client = await connecting;
+	return client;
+}
