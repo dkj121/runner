@@ -1,4 +1,5 @@
 import "@amap/amap-jsapi-types";
+import AMapLoader from "@amap/amap-jsapi-loader";
 
 export interface AMapSDK {
 	Map: typeof AMap.Map;
@@ -9,12 +10,6 @@ export interface AMapSDK {
 	};
 }
 
-type LoaderOpts = {
-	key: string;
-	version: string;
-	securityJsCode?: string;
-};
-
 let sdkPromise: Promise<AMapSDK> | null = null;
 
 export function loadAMapSDK(): Promise<AMapSDK> {
@@ -22,13 +17,12 @@ export function loadAMapSDK(): Promise<AMapSDK> {
 		throw new Error("NEXT_PUBLIC_AMAP_KEY 未配置");
 	}
 	if (!sdkPromise) {
-		sdkPromise = import("@amap/amap-jsapi-loader").then((mod) =>
-			mod.default.load({
-				key: process.env.NEXT_PUBLIC_AMAP_KEY!,
-				version: "2.0",
-				securityJsCode: process.env.NEXT_PUBLIC_AMAP_SECURITY_CODE!,
-			} as LoaderOpts),
-		) as Promise<AMapSDK>;
+		sdkPromise = AMapLoader.load({
+			key: process.env.NEXT_PUBLIC_AMAP_KEY!,
+			version: "2.0",
+			securityJsCode: process.env.NEXT_PUBLIC_AMAP_SECURITY_CODE!,
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		} as any) as Promise<AMapSDK>;
 	}
 	return sdkPromise;
 }

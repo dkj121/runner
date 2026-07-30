@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, MapIcon } from "lucide-react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { useSession } from "@/lib/auth-client";
+
+const RunMap = lazy(() => import("@/components/map-loader"));
 
 interface SplitRow {
 	km: number;
@@ -23,6 +25,7 @@ interface RunData {
 	startTime: string;
 	endTime: string;
 	splits: SplitRow[] | null;
+	trackPoints?: { lat: number; lng: number }[];
 }
 
 function formatDate(iso: string) {
@@ -101,6 +104,10 @@ export default function SummaryPage() {
 					}))
 				: null;
 
+			const rawTrack = record.trackPoints as
+				| { lat: number; lng: number; timestamp: number }[]
+				| null;
+
 			setData({
 				id: record.id,
 				distance: record.distance,
@@ -110,6 +117,7 @@ export default function SummaryPage() {
 				startTime: record.startTime,
 				endTime: record.endTime,
 				splits,
+				trackPoints: rawTrack?.map((p) => ({ lat: p.lat, lng: p.lng })),
 			});
 		} catch (e) {
 			console.error("加载跑步记录失败", e);
@@ -156,6 +164,26 @@ export default function SummaryPage() {
 					跑步汇总
 				</h1>
 			</div>
+
+			{data.trackPoints && data.trackPoints.length >= 2 ? (
+				<div className="overflow-hidden rounded-xl border border-border">
+					<Suspense
+						fallback={
+							<div className="flex h-48 items-center justify-center gap-2 bg-card text-sm text-muted-foreground">
+								<Loader2 className="size-4 animate-spin" />
+								加载地图...
+							</div>
+						}
+					>
+						<RunMap track={data.trackPoints} finished />
+					</Suspense>
+				</div>
+			) : (
+				<div className="flex h-32 items-center justify-center gap-2 rounded-xl border border-border bg-card text-sm text-muted-foreground">
+					<MapIcon className="size-4" />
+					无轨迹数据
+				</div>
+			)}
 
 			<Card className="items-center gap-2 border border-[var(--color-primary)/20] py-6 shadow-[0_0_40px_hsl(22_100%_56%/0.08)]">
 				<div className="font-mono text-5xl font-bold tracking-tighter text-primary">

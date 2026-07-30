@@ -15,7 +15,7 @@ interface RunOptions {
 }
 
 export default function useRunTracker(userId?: string, options?: RunOptions) {
-	const [status, setStatus] = useState<"idle" | "running" | "paused">("idle");
+	const [status, setStatus] = useState<"idle" | "running" | "paused" | "finished">("idle");
 	const [distance, setDistance] = useState(0);
 	const [duration, setDuration] = useState(0);
 	const [track, setTrack] = useState<TrackPoint[]>([]);
@@ -244,7 +244,7 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 
 		clearResources();
 		accumulatedRef.current = 0;
-		setStatus("idle");
+		setStatus("finished");
 		runIdRef.current = null;
 
 		return { ...snapshot, runId };

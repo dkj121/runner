@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Map, Heart, Pause, Play, Square, Lock } from "lucide-react";
+import { Map, Heart, Pause, Play, Square, Lock, Unlock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import useRunTracker from "@/hooks/use-run-tracker";
@@ -25,12 +25,22 @@ export default function RunPage() {
 	const tracker = useRunTracker(userId, { samplingDensity: density });
 
 	const isPaused = tracker.status === "paused";
+	const [locked, setLocked] = useState(false);
+	const [unlockHint, setUnlockHint] = useState(false);
 
 	const handleStop = async () => {
 		const result = await tracker.stop();
 		if (result) {
 			router.push(`/summary?runId=${result.runId}`);
 		}
+	};
+
+	const handleUnlock = () => {
+		setUnlockHint(true);
+		setTimeout(() => {
+			setLocked(false);
+			setUnlockHint(false);
+		}, 400);
 	};
 
 	if (tracker.status === "idle") {
@@ -63,6 +73,18 @@ export default function RunPage() {
 				>
 					开始
 				</button>
+			</div>
+		);
+	}
+
+	if (tracker.status === "finished") {
+		return (
+			<div className="flex h-full flex-col items-center justify-center gap-4 px-5">
+				<div className="flex size-20 items-center justify-center rounded-full bg-gradient-to-b from-primary to-orange-600 shadow-[0_4px_32px_hsl(22_100%_56%/0.375)]">
+					<Square className="size-8 text-white" />
+				</div>
+				<p className="text-lg font-semibold text-foreground">跑步已完成</p>
+				<p className="text-sm text-muted-foreground">正在生成汇总...</p>
 			</div>
 		);
 	}
@@ -108,11 +130,30 @@ export default function RunPage() {
 				</Card>
 			</div>
 
-			<div className="flex items-center justify-center gap-4">
+			<div className="relative flex items-center justify-center gap-4">
+				{locked && (
+					<div
+						className="absolute inset-0 z-10 flex cursor-pointer items-center justify-center rounded-full"
+						onClick={handleUnlock}
+					>
+						{unlockHint ? (
+							<span className="rounded-full bg-background/80 px-6 py-2 text-sm text-muted-foreground backdrop-blur-sm">
+								已解锁
+							</span>
+						) : (
+							<div className="flex flex-col items-center gap-1">
+								<Unlock className="h-6 w-6 text-muted-foreground/50" />
+								<span className="text-xs text-muted-foreground/50">轻触解锁</span>
+							</div>
+						)}
+					</div>
+				)}
 				<button
 					type="button"
 					onClick={isPaused ? tracker.resume : tracker.pause}
-					className="flex h-18 w-18 items-center justify-center rounded-full border border-border bg-card"
+					className={`flex h-18 w-18 items-center justify-center rounded-full border bg-card transition-opacity ${
+						locked ? "pointer-events-none opacity-0" : "border-border"
+					}`}
 				>
 					{isPaused ? (
 						<Play className="h-7 w-7 text-primary" />
@@ -123,13 +164,18 @@ export default function RunPage() {
 				<button
 					type="button"
 					onClick={handleStop}
-					className="flex h-22 w-22 items-center justify-center rounded-full bg-gradient-to-b from-primary to-orange-600 shadow-[0_4px_32px_hsl(22_100%_56%/0.375)]"
+					className={`flex h-22 w-22 items-center justify-center rounded-full bg-gradient-to-b from-primary to-orange-600 shadow-[0_4px_32px_hsl(22_100%_56%/0.375)] transition-opacity ${
+						locked ? "pointer-events-none opacity-0" : ""
+					}`}
 				>
 					<Square className="h-8 w-8 text-white" />
 				</button>
 				<button
 					type="button"
-					className="flex h-18 w-18 items-center justify-center rounded-full border border-border bg-card"
+					onClick={() => setLocked(true)}
+					className={`flex h-18 w-18 items-center justify-center rounded-full border bg-card transition-opacity ${
+						locked ? "pointer-events-none opacity-0" : "border-border"
+					}`}
 				>
 					<Lock className="h-6 w-6 text-muted-foreground" />
 				</button>
