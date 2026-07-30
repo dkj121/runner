@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-	/* === Font Stack (literal names — Tailwind v4 can't resolve runtime CSS vars) === */
+	/* === Font Stack (standard system fonts --- Tailwind v4 can't resolve runtime CSS vars) === */
 	--font-sans: ui-sans-serif, system-ui, sans-serif;
 	--font-heading: ui-sans-serif, system-ui, sans-serif;
 	--font-mono: ui-monospace, monospace;

@@ -24,6 +24,10 @@ model RunRecord {
   duration                Int                    @default(0)
   distance                Float                  @default(0)
   avgPace                 String                 @default("")
+  trackPoints             Json?                  @map("track_points")
+  calories                Int                    @default(0)
+  splits                  Json?                  @map("splits")
+  notes                   String?                @map("notes")
   createdAt               DateTime               @default(now()) @db.Timestamp(3)
   updatedAt               DateTime               @updatedAt @db.Timestamp(3)
 
