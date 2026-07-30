@@ -143,7 +143,9 @@ export default function RunPage() {
 						) : (
 							<div className="flex flex-col items-center gap-1">
 								<Unlock className="h-6 w-6 text-muted-foreground/50" />
-								<span className="text-xs text-muted-foreground/50">轻触解锁</span>
+								<span className="text-xs text-muted-foreground/50">
+									轻触解锁
+								</span>
 							</div>
 						)}
 					</div>

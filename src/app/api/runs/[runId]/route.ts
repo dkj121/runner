@@ -56,7 +56,20 @@ export async function GET(
 
 	const record = await prisma.runRecord.findUnique({
 		where: { id: runId },
-		select: { userId: true, startTime: true, endTime: true, duration: true, distance: true, avgPace: true, trackPoints: true, calories: true, splits: true, notes: true, createdAt: true, updatedAt: true },
+		select: {
+			userId: true,
+			startTime: true,
+			endTime: true,
+			duration: true,
+			distance: true,
+			avgPace: true,
+			trackPoints: true,
+			calories: true,
+			splits: true,
+			notes: true,
+			createdAt: true,
+			updatedAt: true,
+		},
 	});
 
 	if (!record) {
@@ -127,10 +140,7 @@ export async function PATCH(
 	} = await request.json();
 
 	if (!endTime) {
-		return NextResponse.json(
-			{ error: "endTime required" },
-			{ status: 400 },
-		);
+		return NextResponse.json({ error: "endTime required" }, { status: 400 });
 	}
 
 	await prisma.runRecord.update({
