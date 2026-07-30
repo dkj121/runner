@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import { segmentDistance, formatDuration, calcPace } from "@/lib/track-calc";
 import useGpsTracking from "@/hooks/use-gps-tracking";
 
@@ -15,7 +15,9 @@ interface RunOptions {
 }
 
 export default function useRunTracker(userId?: string, options?: RunOptions) {
-	const [status, setStatus] = useState<"idle" | "running" | "paused" | "finished">("idle");
+	const [status, setStatus] = useState<
+		"idle" | "running" | "paused" | "finished"
+	>("idle");
 	const [distance, setDistance] = useState(0);
 	const [duration, setDuration] = useState(0);
 	const [track, setTrack] = useState<TrackPoint[]>([]);
@@ -33,13 +35,8 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 	const rollingWindow = useRef<TrackPoint[]>([]);
 
 	const runIdRef = useRef<string | null>(null);
-	const userIdRef = useRef(userId);
 	const pointQueue = useRef<TrackPoint[]>([]);
 	const flushTimer = useRef<ReturnType<typeof setInterval> | null>(null);
-
-	useEffect(() => {
-		userIdRef.current = userId;
-	}, [userId]);
 
 	const flushPoints = useCallback(() => {
 		const runId = runIdRef.current;
@@ -69,7 +66,6 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 			distanceMetersRef.current += dist;
 			setDistance((d) => d + dist / 1000);
 
-			// Auto km split
 			const km = Math.floor(distanceMetersRef.current / 1000);
 			if (
 				km > 0 &&
@@ -88,7 +84,6 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 
 		lastPoint.current = point;
 
-		// Rolling 30s window for instant pace
 		const cutoff = point.timestamp - 30000;
 		rollingWindow.current = [
 			...rollingWindow.current.filter((p) => p.timestamp >= cutoff),
@@ -145,8 +140,7 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 	}, [stopTimer, gps]);
 
 	const start = useCallback(async () => {
-		const uid = userIdRef.current;
-		if (!uid) return;
+		if (!userId) return;
 
 		accumulatedRef.current = 0;
 		distanceMetersRef.current = 0;
@@ -166,7 +160,6 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 			const res = await fetch("/api/runs", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ userId: uid }),
 			});
 			const data = await res.json();
 			runIdRef.current = data.runId;
@@ -178,7 +171,7 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 		flushTimer.current = setInterval(flushPoints, 15000);
 		startTimer();
 		gps.startTracking();
-	}, [startTimer, gps, flushPoints]);
+	}, [startTimer, gps, flushPoints, userId]);
 
 	const pause = useCallback(() => {
 		clearResources();
@@ -236,7 +229,7 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 			await fetch(`/api/runs/${runId}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ userId: userIdRef.current, ...snapshot }),
+				body: JSON.stringify(snapshot),
 			});
 		} catch (e) {
 			console.error("保存失败", e);

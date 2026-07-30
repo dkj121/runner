@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { clearRunSession, getAllPoints } from "@/lib/gps-cache";
 
-// ponytail: inline haversine to avoid importing track-calc.ts which triggers amap-sdk (browser-only) on server
+// inline haversine to avoid importing track-calc.ts (browser-only amap-sdk)
 function haversineDistance(
 	lat1: number,
 	lng1: number,
@@ -45,14 +47,23 @@ export async function GET(
 	_request: Request,
 	{ params }: { params: Promise<{ runId: string }> },
 ) {
+	const session = await auth.api.getSession({ headers: await headers() });
+	if (!session?.user?.id) {
+		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+	}
+
 	const { runId } = await params;
 
 	const record = await prisma.runRecord.findUnique({
 		where: { id: runId },
-		include: { user: { select: { id: true, name: true, image: true } } },
+		select: { userId: true, startTime: true, endTime: true, duration: true, distance: true, avgPace: true, trackPoints: true, calories: true, splits: true, notes: true, createdAt: true, updatedAt: true },
 	});
 
 	if (!record) {
+		return NextResponse.json({ error: "not found" }, { status: 404 });
+	}
+
+	if (record.userId !== session.user.id) {
 		return NextResponse.json({ error: "not found" }, { status: 404 });
 	}
 
@@ -87,9 +98,24 @@ export async function PATCH(
 	request: Request,
 	{ params }: { params: Promise<{ runId: string }> },
 ) {
+	const session = await auth.api.getSession({ headers: await headers() });
+	if (!session?.user?.id) {
+		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+	}
+
 	const { runId } = await params;
+
+	// Verify ownership
+	const existing = await prisma.runRecord.findUnique({
+		where: { id: runId },
+		select: { userId: true },
+	});
+
+	if (!existing || existing.userId !== session.user.id) {
+		return NextResponse.json({ error: "not found" }, { status: 404 });
+	}
+
 	const {
-		userId,
 		endTime,
 		duration,
 		distance,
@@ -100,9 +126,9 @@ export async function PATCH(
 		notes,
 	} = await request.json();
 
-	if (!userId || !endTime) {
+	if (!endTime) {
 		return NextResponse.json(
-			{ error: "userId and endTime required" },
+			{ error: "endTime required" },
 			{ status: 400 },
 		);
 	}
@@ -121,7 +147,7 @@ export async function PATCH(
 		},
 	});
 
-	await clearRunSession(runId, userId);
+	await clearRunSession(runId, session.user.id);
 
 	return NextResponse.json({ ok: true });
 }
