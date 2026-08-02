@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+	createRequestLogger,
+	PerformanceLogger,
+	logApiRequest,
+	logError,
+} from "@/lib/logger";
 
 /**
  * GET /api/playgrounds/[id]/leaderboard
@@ -11,8 +17,21 @@ export async function GET(
 	request: Request,
 	{ params }: { params: Promise<{ id: string }> },
 ) {
-	const session = await auth.api.getSession({ headers: await headers() });
+	const startTime = Date.now();
+	const requestId = crypto.randomUUID();
 	const { id } = await params;
+
+	const session = await auth.api.getSession({ headers: await headers() });
+	const userId = session?.user?.id;
+
+	const logger = createRequestLogger(requestId, userId);
+	const perf = new PerformanceLogger("getLeaderboard", {
+		playgroundId: id,
+		userId,
+		requestId,
+	});
+
+	logger.debug({ playgroundId: id }, "Fetching leaderboard");
 
 	try {
 		const playground = await prisma.playGround.findUnique({
@@ -21,24 +40,52 @@ export async function GET(
 		});
 
 		if (!playground) {
+			const duration = Date.now() - startTime;
+			logApiRequest("GET", `/api/playgrounds/${id}/leaderboard`, 404, duration, {
+				userId,
+				playgroundId: id,
+			});
+
 			return NextResponse.json(
 				{ error: "Playground not found" },
 				{ status: 404 },
 			);
 		}
 
+		perf.checkpoint("playground_fetched");
+
 		// Check visibility permissions
 		if (playground.visibility === "PRIVATE") {
 			if (!session?.user?.id) {
+				const duration = Date.now() - startTime;
+				logApiRequest("GET", `/api/playgrounds/${id}/leaderboard`, 401, duration, {
+					playgroundId: id,
+					visibility: playground.visibility,
+				});
+
 				return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 			}
 			const isMember = playground.users.some(
 				(u) => u.userId === session.user.id,
 			);
 			if (!isMember) {
+				const duration = Date.now() - startTime;
+				logApiRequest("GET", `/api/playgrounds/${id}/leaderboard`, 403, duration, {
+					userId: session.user.id,
+					playgroundId: id,
+					visibility: playground.visibility,
+				});
+
+				logger.warn(
+					{ playgroundId: id, userId: session.user.id },
+					"Non-member attempted to view private playground leaderboard",
+				);
+
 				return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 			}
 		}
+
+		perf.checkpoint("access_verified");
 
 		// Fetch ranking list
 		const rankingList = await prisma.playGroundRankingList.findUnique({
@@ -54,8 +101,17 @@ export async function GET(
 		});
 
 		if (!rankingList) {
+			const duration = Date.now() - startTime;
+			logApiRequest("GET", `/api/playgrounds/${id}/leaderboard`, 200, duration, {
+				userId,
+				playgroundId: id,
+				leaderboardSize: 0,
+			});
+
 			return NextResponse.json({ leaderboard: [] });
 		}
+
+		perf.checkpoint("ranking_fetched");
 
 		// Aggregate by user
 		const userMap = new Map<
@@ -101,9 +157,35 @@ export async function GET(
 				rank: index + 1,
 			}));
 
+		perf.done({ leaderboardSize: leaderboard.length });
+
+		const duration = Date.now() - startTime;
+		logApiRequest("GET", `/api/playgrounds/${id}/leaderboard`, 200, duration, {
+			userId,
+			playgroundId: id,
+			leaderboardSize: leaderboard.length,
+		});
+
 		return NextResponse.json({ leaderboard });
 	} catch (error) {
-		console.error("Failed to fetch leaderboard:", error);
+		const duration = Date.now() - startTime;
+
+		perf.error(error as Error);
+		logError(error as Error, {
+			operation: "getLeaderboard",
+			userId,
+			playgroundId: id,
+			requestId,
+		});
+
+		logApiRequest("GET", `/api/playgrounds/${id}/leaderboard`, 500, duration, {
+			userId,
+			playgroundId: id,
+			error: (error as Error).message,
+		});
+
+		logger.error({ err: error, playgroundId: id }, "Failed to fetch leaderboard");
+
 		return NextResponse.json(
 			{ error: "Failed to fetch leaderboard" },
 			{ status: 500 },
