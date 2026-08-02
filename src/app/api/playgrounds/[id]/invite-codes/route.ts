@@ -54,10 +54,16 @@ export async function GET(
 
 		if (!membership) {
 			const duration = Date.now() - startTime;
-			logApiRequest("GET", `/api/playgrounds/${id}/invite-codes`, 403, duration, {
-				userId: session.user.id,
-				playgroundId: id,
-			});
+			logApiRequest(
+				"GET",
+				`/api/playgrounds/${id}/invite-codes`,
+				403,
+				duration,
+				{
+					userId: session.user.id,
+					playgroundId: id,
+				},
+			);
 
 			logger.warn(
 				{ playgroundId: id, userId: session.user.id },
@@ -104,7 +110,10 @@ export async function GET(
 			error: (error as Error).message,
 		});
 
-		logger.error({ err: error, playgroundId: id }, "Failed to fetch invite codes");
+		logger.error(
+			{ err: error, playgroundId: id },
+			"Failed to fetch invite codes",
+		);
 
 		return NextResponse.json(
 			{ error: "Failed to fetch invite codes" },
@@ -150,10 +159,16 @@ export async function POST(
 
 		if (!membership) {
 			const duration = Date.now() - startTime;
-			logApiRequest("POST", `/api/playgrounds/${id}/invite-codes`, 403, duration, {
-				userId: session.user.id,
-				playgroundId: id,
-			});
+			logApiRequest(
+				"POST",
+				`/api/playgrounds/${id}/invite-codes`,
+				403,
+				duration,
+				{
+					userId: session.user.id,
+					playgroundId: id,
+				},
+			);
 
 			logger.warn(
 				{ playgroundId: id, userId: session.user.id },
@@ -191,11 +206,17 @@ export async function POST(
 		perf.done({ code: inviteCode.code });
 
 		const duration = Date.now() - startTime;
-		logApiRequest("POST", `/api/playgrounds/${id}/invite-codes`, 201, duration, {
-			userId: session.user.id,
-			playgroundId: id,
-			code: inviteCode.code,
-		});
+		logApiRequest(
+			"POST",
+			`/api/playgrounds/${id}/invite-codes`,
+			201,
+			duration,
+			{
+				userId: session.user.id,
+				playgroundId: id,
+				code: inviteCode.code,
+			},
+		);
 
 		logger.info(
 			{ playgroundId: id, code: inviteCode.code },
@@ -214,11 +235,17 @@ export async function POST(
 			requestId,
 		});
 
-		logApiRequest("POST", `/api/playgrounds/${id}/invite-codes`, 500, duration, {
-			userId: session.user.id,
-			playgroundId: id,
-			error: (error as Error).message,
-		});
+		logApiRequest(
+			"POST",
+			`/api/playgrounds/${id}/invite-codes`,
+			500,
+			duration,
+			{
+				userId: session.user.id,
+				playgroundId: id,
+				error: (error as Error).message,
+			},
+		);
 
 		logger.error(
 			{ err: error, playgroundId: id },

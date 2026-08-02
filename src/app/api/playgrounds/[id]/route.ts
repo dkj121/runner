@@ -123,7 +123,10 @@ export async function GET(
 			error: (error as Error).message,
 		});
 
-		logger.error({ err: error, playgroundId: id }, "Failed to fetch playground");
+		logger.error(
+			{ err: error, playgroundId: id },
+			"Failed to fetch playground",
+		);
 
 		return NextResponse.json(
 			{ error: "Failed to fetch playground" },
@@ -245,7 +248,10 @@ export async function PUT(
 			error: (error as Error).message,
 		});
 
-		logger.error({ err: error, playgroundId: id }, "Failed to update playground");
+		logger.error(
+			{ err: error, playgroundId: id },
+			"Failed to update playground",
+		);
 
 		return NextResponse.json(
 			{ error: "Failed to update playground" },
@@ -338,7 +344,10 @@ export async function DELETE(
 			error: (error as Error).message,
 		});
 
-		logger.error({ err: error, playgroundId: id }, "Failed to delete playground");
+		logger.error(
+			{ err: error, playgroundId: id },
+			"Failed to delete playground",
+		);
 
 		return NextResponse.json(
 			{ error: "Failed to delete playground" },

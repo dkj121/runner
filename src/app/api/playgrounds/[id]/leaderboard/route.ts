@@ -41,10 +41,16 @@ export async function GET(
 
 		if (!playground) {
 			const duration = Date.now() - startTime;
-			logApiRequest("GET", `/api/playgrounds/${id}/leaderboard`, 404, duration, {
-				userId,
-				playgroundId: id,
-			});
+			logApiRequest(
+				"GET",
+				`/api/playgrounds/${id}/leaderboard`,
+				404,
+				duration,
+				{
+					userId,
+					playgroundId: id,
+				},
+			);
 
 			return NextResponse.json(
 				{ error: "Playground not found" },
@@ -58,10 +64,16 @@ export async function GET(
 		if (playground.visibility === "PRIVATE") {
 			if (!session?.user?.id) {
 				const duration = Date.now() - startTime;
-				logApiRequest("GET", `/api/playgrounds/${id}/leaderboard`, 401, duration, {
-					playgroundId: id,
-					visibility: playground.visibility,
-				});
+				logApiRequest(
+					"GET",
+					`/api/playgrounds/${id}/leaderboard`,
+					401,
+					duration,
+					{
+						playgroundId: id,
+						visibility: playground.visibility,
+					},
+				);
 
 				return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 			}
@@ -70,11 +82,17 @@ export async function GET(
 			);
 			if (!isMember) {
 				const duration = Date.now() - startTime;
-				logApiRequest("GET", `/api/playgrounds/${id}/leaderboard`, 403, duration, {
-					userId: session.user.id,
-					playgroundId: id,
-					visibility: playground.visibility,
-				});
+				logApiRequest(
+					"GET",
+					`/api/playgrounds/${id}/leaderboard`,
+					403,
+					duration,
+					{
+						userId: session.user.id,
+						playgroundId: id,
+						visibility: playground.visibility,
+					},
+				);
 
 				logger.warn(
 					{ playgroundId: id, userId: session.user.id },
@@ -102,11 +120,17 @@ export async function GET(
 
 		if (!rankingList) {
 			const duration = Date.now() - startTime;
-			logApiRequest("GET", `/api/playgrounds/${id}/leaderboard`, 200, duration, {
-				userId,
-				playgroundId: id,
-				leaderboardSize: 0,
-			});
+			logApiRequest(
+				"GET",
+				`/api/playgrounds/${id}/leaderboard`,
+				200,
+				duration,
+				{
+					userId,
+					playgroundId: id,
+					leaderboardSize: 0,
+				},
+			);
 
 			return NextResponse.json({ leaderboard: [] });
 		}
@@ -184,7 +208,10 @@ export async function GET(
 			error: (error as Error).message,
 		});
 
-		logger.error({ err: error, playgroundId: id }, "Failed to fetch leaderboard");
+		logger.error(
+			{ err: error, playgroundId: id },
+			"Failed to fetch leaderboard",
+		);
 
 		return NextResponse.json(
 			{ error: "Failed to fetch leaderboard" },

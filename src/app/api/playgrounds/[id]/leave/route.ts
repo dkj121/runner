@@ -108,7 +108,10 @@ export async function POST(
 			error: (error as Error).message,
 		});
 
-		logger.error({ err: error, playgroundId: id }, "Failed to leave playground");
+		logger.error(
+			{ err: error, playgroundId: id },
+			"Failed to leave playground",
+		);
 
 		return NextResponse.json(
 			{ error: "Failed to leave playground" },
