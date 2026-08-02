@@ -93,7 +93,10 @@ export async function joinPlayGround(inviteCode: string) {
 	const userId = session?.user?.id;
 
 	if (!userId) {
-		loggers.auth.warn({ inviteCode: inviteCode.substring(0, 3) + "***" }, "Unauthorized join attempt");
+		loggers.auth.warn(
+			{ inviteCode: inviteCode.substring(0, 3) + "***" },
+			"Unauthorized join attempt",
+		);
 		throw new Error("Unauthorized");
 	}
 
@@ -133,7 +136,12 @@ export async function joinPlayGround(inviteCode: string) {
 
 		if (code.maxUses > 0 && code.useCount >= code.maxUses) {
 			loggers.invite.warn(
-				{ userId, codeId: code.id, useCount: code.useCount, maxUses: code.maxUses },
+				{
+					userId,
+					codeId: code.id,
+					useCount: code.useCount,
+					maxUses: code.maxUses,
+				},
 				"Invite code usage limit reached",
 			);
 			throw new Error("邀请码已达使用上限");
@@ -211,7 +219,10 @@ export async function leavePlayGround(playGroundId: string) {
 		playGroundId,
 	});
 
-	loggers.playground.info({ userId, playGroundId }, "User attempting to leave playground");
+	loggers.playground.info(
+		{ userId, playGroundId },
+		"User attempting to leave playground",
+	);
 
 	try {
 		const membership = await prisma.playGroundUser.findFirst({
@@ -279,7 +290,12 @@ export async function generateInviteCode(
 	});
 
 	loggers.invite.info(
-		{ userId, playGroundId, maxUses: options?.maxUses, expiresInHours: options?.expiresInHours },
+		{
+			userId,
+			playGroundId,
+			maxUses: options?.maxUses,
+			expiresInHours: options?.expiresInHours,
+		},
 		"Generating invite code",
 	);
 
@@ -357,7 +373,10 @@ export async function deletePlayGround(id: string) {
 		playGroundId: id,
 	});
 
-	loggers.playground.warn({ userId, playGroundId: id }, "Attempting to delete playground");
+	loggers.playground.warn(
+		{ userId, playGroundId: id },
+		"Attempting to delete playground",
+	);
 
 	try {
 		const pg = await prisma.playGroundUser.findFirst({
@@ -413,7 +432,11 @@ export async function deletePlayGround(id: string) {
 /**
  * Example 6: Authentication with logging
  */
-export async function signUpUser(email: string, password: string, name: string) {
+export async function signUpUser(
+	email: string,
+	password: string,
+	name: string,
+) {
 	const perf = new PerformanceLogger("signUpUser", { email: maskEmail(email) });
 
 	loggers.auth.info({ email: maskEmail(email) }, "User signup attempt");
@@ -475,9 +498,10 @@ function maskEmail(email: string): string {
 	const [local, domain] = email.split("@");
 	if (!local || !domain) return "***@***";
 
-	const maskedLocal = local.length > 2
-		? `${local[0]}${"*".repeat(local.length - 2)}${local[local.length - 1]}`
-		: "**";
+	const maskedLocal =
+		local.length > 2
+			? `${local[0]}${"*".repeat(local.length - 2)}${local[local.length - 1]}`
+			: "**";
 
 	return `${maskedLocal}@${domain}`;
 }
@@ -492,4 +516,5 @@ async function createUser(email: string, password: string, name: string) {
 
 async function sendVerificationEmail(email: string) {
 	// Implementation here
+	return { id: "email123", email };
 }

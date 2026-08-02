@@ -1,4 +1,9 @@
 import pino, { type Logger, type LoggerOptions } from "pino";
+import type {
+	User,
+	PlayGround,
+	RunRecord,
+} from "../../generated/prisma/client";
 
 /**
  * Logger configuration for the Runner application
@@ -27,35 +32,40 @@ const baseLoggerOptions: LoggerOptions = {
 		err: pino.stdSerializers.err,
 
 		// Custom serializer for user context (removes sensitive fields)
-		user: (user: any) => {
-			if (!user) return user;
+		user: (user: unknown) => {
+			if (!user || typeof user !== "object") return user;
+			const u = user as Partial<User>;
 			return {
-				id: user.id,
-				name: user.name,
-				email: user.email ? maskEmail(user.email) : undefined,
+				id: u.id,
+				name: u.name,
+				email: typeof u.email === "string" ? maskEmail(u.email) : undefined,
 			};
 		},
 
 		// Custom serializer for playground context
-		playground: (playground: any) => {
-			if (!playground) return playground;
+		playground: (playground: unknown) => {
+			if (!playground || typeof playground !== "object") return playground;
+			const pg = playground as Partial<PlayGround> & {
+				_count?: { users?: number };
+			};
 			return {
-				id: playground.id,
-				name: playground.name,
-				visibility: playground.visibility,
-				memberCount: playground._count?.users,
+				id: pg.id,
+				name: pg.name,
+				visibility: pg.visibility,
+				memberCount: pg._count?.users,
 			};
 		},
 
 		// Custom serializer for run records
-		runRecord: (record: any) => {
-			if (!record) return record;
+		runRecord: (record: unknown) => {
+			if (!record || typeof record !== "object") return record;
+			const r = record as Partial<RunRecord>;
 			return {
-				id: record.id,
-				userId: record.userId,
-				distance: record.distance,
-				duration: record.duration,
-				avgPace: record.avgPace,
+				id: r.id,
+				userId: r.userId,
+				distance: r.distance,
+				duration: r.duration,
+				avgPace: r.avgPace,
 			};
 		},
 	},
@@ -102,7 +112,13 @@ export interface LogContext {
 	inviteCode?: string;
 	operation?: string;
 	duration?: number;
-	[key: string]: any;
+	[key: string]:
+		| string
+		| number
+		| boolean
+		| null
+		| undefined
+		| Record<string, unknown>;
 }
 
 /**
@@ -110,7 +126,10 @@ export interface LogContext {
  * @param context - Context to attach to all logs from this child logger
  * @param moduleName - Optional module name for namespace
  */
-export function createLogger(context: LogContext = {}, moduleName?: string): Logger {
+export function createLogger(
+	context: LogContext = {},
+	moduleName?: string,
+): Logger {
 	const childContext = {
 		...(moduleName && { module: moduleName }),
 		...context,
@@ -146,7 +165,11 @@ export class PerformanceLogger {
 	private operation: string;
 	private context: LogContext;
 
-	constructor(operation: string, context: LogContext = {}, customLogger?: Logger) {
+	constructor(
+		operation: string,
+		context: LogContext = {},
+		customLogger?: Logger,
+	) {
 		this.startTime = Date.now();
 		this.operation = operation;
 		this.context = context;
@@ -161,7 +184,12 @@ export class PerformanceLogger {
 	done(additionalContext: LogContext = {}): void {
 		const duration = Date.now() - this.startTime;
 		this.logger.info(
-			{ operation: this.operation, duration, ...this.context, ...additionalContext },
+			{
+				operation: this.operation,
+				duration,
+				...this.context,
+				...additionalContext,
+			},
 			`Completed: ${this.operation} in ${duration}ms`,
 		);
 	}
@@ -172,7 +200,13 @@ export class PerformanceLogger {
 	error(error: Error, additionalContext: LogContext = {}): void {
 		const duration = Date.now() - this.startTime;
 		this.logger.error(
-			{ operation: this.operation, duration, err: error, ...this.context, ...additionalContext },
+			{
+				operation: this.operation,
+				duration,
+				err: error,
+				...this.context,
+				...additionalContext,
+			},
 			`Failed: ${this.operation} after ${duration}ms - ${error.message}`,
 		);
 	}
@@ -183,7 +217,13 @@ export class PerformanceLogger {
 	checkpoint(label: string, additionalContext: LogContext = {}): void {
 		const elapsed = Date.now() - this.startTime;
 		this.logger.debug(
-			{ operation: this.operation, checkpoint: label, elapsed, ...this.context, ...additionalContext },
+			{
+				operation: this.operation,
+				checkpoint: label,
+				elapsed,
+				...this.context,
+				...additionalContext,
+			},
 			`Checkpoint [${label}]: ${elapsed}ms elapsed`,
 		);
 	}
@@ -193,11 +233,17 @@ export class PerformanceLogger {
  * Request logger middleware helper
  * Creates a logger with request context
  */
-export function createRequestLogger(requestId: string, userId?: string): Logger {
-	return createLogger({
-		requestId,
-		userId,
-	}, "request");
+export function createRequestLogger(
+	requestId: string,
+	userId?: string,
+): Logger {
+	return createLogger(
+		{
+			requestId,
+			userId,
+		},
+		"request",
+	);
 }
 
 /**
@@ -240,7 +286,8 @@ export function logApiRequest(
 	duration: number,
 	context: LogContext = {},
 ): void {
-	const level = statusCode >= 500 ? "error" : statusCode >= 400 ? "warn" : "info";
+	const level =
+		statusCode >= 500 ? "error" : statusCode >= 400 ? "warn" : "info";
 
 	loggers.api[level](
 		{ method, path, statusCode, duration, ...context },
@@ -322,7 +369,8 @@ export function logSecurityEvent(
 	severity: "low" | "medium" | "high" | "critical",
 	context: LogContext = {},
 ): void {
-	const level = severity === "critical" || severity === "high" ? "error" : "warn";
+	const level =
+		severity === "critical" || severity === "high" ? "error" : "warn";
 
 	logger[level](
 		{ security: true, event, severity, ...context },
@@ -337,9 +385,10 @@ function maskEmail(email: string): string {
 	const [local, domain] = email.split("@");
 	if (!local || !domain) return "***@***";
 
-	const maskedLocal = local.length > 2
-		? `${local[0]}${"*".repeat(local.length - 2)}${local[local.length - 1]}`
-		: "**";
+	const maskedLocal =
+		local.length > 2
+			? `${local[0]}${"*".repeat(local.length - 2)}${local[local.length - 1]}`
+			: "**";
 
 	return `${maskedLocal}@${domain}`;
 }
@@ -355,10 +404,18 @@ export function createConditionalLogger(
 		get(target, prop) {
 			const original = target[prop as keyof Logger];
 
-			if (typeof original === "function" && ["trace", "debug", "info", "warn", "error", "fatal"].includes(prop as string)) {
-				return (...args: any[]) => {
+			if (
+				typeof original === "function" &&
+				["trace", "debug", "info", "warn", "error", "fatal"].includes(
+					prop as string,
+				)
+			) {
+				return (...args: unknown[]) => {
 					if (condition()) {
-						return (original as Function).apply(target, args);
+						return (original as (...params: unknown[]) => unknown).apply(
+							target,
+							args,
+						);
 					}
 				};
 			}

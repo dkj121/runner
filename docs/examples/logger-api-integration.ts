@@ -40,7 +40,10 @@ export async function GET(request: Request) {
 		const { searchParams } = new URL(request.url);
 		const take = Math.min(Number(searchParams.get("take")) || 20, 100);
 		const skip = Number(searchParams.get("skip")) || 0;
-		const visibility = searchParams.get("visibility") as "PUBLIC" | "PRIVATE" | null;
+		const visibility = searchParams.get("visibility") as
+			| "PUBLIC"
+			| "PRIVATE"
+			| null;
 
 		logger.debug({ take, skip, visibility }, "Query parameters parsed");
 
@@ -133,7 +136,14 @@ export async function POST(request: Request) {
 
 	try {
 		const body = await request.json();
-		const { name, description, visibility, locationLat, locationLng, locationAddr } = body;
+		const {
+			name,
+			description,
+			visibility,
+			locationLat,
+			locationLng,
+			locationAddr,
+		} = body;
 
 		logger.debug({ name, visibility }, "Request body parsed");
 
@@ -254,7 +264,10 @@ export async function JOIN(
 		const body = await request.json();
 		const { inviteCode } = body;
 
-		logger.debug({ inviteCode: inviteCode.substring(0, 3) + "***" }, "Invite code received");
+		logger.debug(
+			{ inviteCode: inviteCode.substring(0, 3) + "***" },
+			"Invite code received",
+		);
 
 		if (!inviteCode || typeof inviteCode !== "string") {
 			const duration = Date.now() - startTime;
@@ -305,7 +318,10 @@ export async function JOIN(
 		}
 
 		if (code.expiresAt && code.expiresAt < new Date()) {
-			logger.warn({ codeId: code.id, expiresAt: code.expiresAt }, "Expired invite code used");
+			logger.warn(
+				{ codeId: code.id, expiresAt: code.expiresAt },
+				"Expired invite code used",
+			);
 			return NextResponse.json({ error: "邀请码已过期" }, { status: 400 });
 		}
 
@@ -314,7 +330,10 @@ export async function JOIN(
 				{ codeId: code.id, useCount: code.useCount, maxUses: code.maxUses },
 				"Invite code usage limit reached",
 			);
-			return NextResponse.json({ error: "邀请码已达使用上限" }, { status: 400 });
+			return NextResponse.json(
+				{ error: "邀请码已达使用上限" },
+				{ status: 400 },
+			);
 		}
 
 		perf.checkpoint("code-validation");

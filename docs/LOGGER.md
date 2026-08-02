@@ -1,6 +1,19 @@
 # Logger Documentation
 
-Comprehensive logging system for the Runner application using Pino.
+Comprehensive logging system for the Runner application using Pino with full TypeScript type safety.
+
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Basic Usage](#basic-usage)
+- [Advanced Usage](#advanced-usage)
+- [Type Safety](#type-safety)
+- [Configuration](#configuration)
+- [Helper Functions](#helper-functions)
+- [Integration Examples](#integration-examples)
+- [Best Practices](#best-practices)
+- [Troubleshooting](#troubleshooting)
 
 ## Features
 
@@ -12,11 +25,13 @@ Comprehensive logging system for the Runner application using Pino.
 - ✅ **Security & Privacy**: Email masking, sensitive data filtering
 - ✅ **Custom Serializers**: Automatic formatting for users, playgrounds, errors
 - ✅ **Environment-Aware**: Different behaviors for dev/prod/test
+- ✅ **Type-Safe**: Uses Prisma-generated types, zero `any` types
 - ✅ **Extensible**: Easy to add new loggers and contexts
 
 ## Installation
 
-Already installed:
+Already installed via pnpm:
+
 ```bash
 pnpm add pino pino-pretty
 ```
@@ -57,6 +72,7 @@ loggers.redis.debug("Cache hit");
 ```
 
 Available module loggers:
+
 - `loggers.auth` - Authentication & authorization
 - `loggers.playground` - Playground operations
 - `loggers.run` - Run records & tracking
@@ -93,215 +109,85 @@ playgroundLogger.debug("Member joined");
 ```typescript
 import { PerformanceLogger } from "@/lib/logger";
 
-async function createPlayground(data: any) {
-  const perf = new PerformanceLogger("createPlayground", { 
-    userId: data.userId 
-  });
+async function createPlayground(data: CreatePlaygroundInput) {
+	const perf = new PerformanceLogger("createPlayground", {
+		userId: data.userId,
+	});
 
-  try {
-    // Add checkpoints
-    perf.checkpoint("validation");
-    
-    // Your code here
-    const playground = await prisma.playGround.create({ data });
-    
-    perf.checkpoint("database");
-    
-    // Mark as done
-    perf.done({ playgroundId: playground.id });
-    
-    return playground;
-  } catch (error) {
-    perf.error(error as Error);
-    throw error;
-  }
+	try {
+		// Add checkpoints
+		perf.checkpoint("validation");
+
+		// Your code here
+		const playground = await prisma.playGround.create({ data });
+
+		perf.checkpoint("database");
+
+		// Mark as done
+		perf.done({ playgroundId: playground.id });
+
+		return playground;
+	} catch (error) {
+		perf.error(error as Error);
+		throw error;
+	}
 }
 ```
 
-### Helper Functions
+## Type Safety
 
-#### Log API Requests
+### Prisma-Generated Types
+
+The logger uses actual Prisma types for type safety:
 
 ```typescript
-import { logApiRequest } from "@/lib/logger";
+import type {
+	User,
+	PlayGround,
+	RunRecord,
+} from "../../generated/prisma/client";
 
-export async function GET(request: Request) {
-  const startTime = Date.now();
-  
-  // Your handler logic
-  const response = NextResponse.json({ data: "..." });
-  
-  logApiRequest(
-    "GET",
-    "/api/playgrounds",
-    200,
-    Date.now() - startTime,
-    { userId: session.user.id }
-  );
-  
-  return response;
-}
+// Serializers use Prisma types
+user: (user: unknown) => {
+	const u = user as Partial<User>;
+	return {
+		id: u.id,
+		name: u.name,
+		email: typeof u.email === "string" ? maskEmail(u.email) : undefined,
+	};
+};
 ```
 
-#### Log Authentication Events
+### Benefits
+
+✅ **Type Safety**: Full TypeScript type checking with Prisma types  
+✅ **ESLint Compliant**: Zero `any` types, passes strict linting rules  
+✅ **IntelliSense**: Better IDE autocomplete and type inference  
+✅ **Maintainable**: Schema changes automatically update logger types  
+✅ **Runtime Safety**: Proper type guards prevent runtime errors
+
+### Usage with Prisma Models
 
 ```typescript
-import { logAuthEvent } from "@/lib/logger";
+import { logger } from "@/lib/logger";
+import { prisma } from "@/lib/prisma";
 
-// Successful login
-logAuthEvent("login", userId, true, { method: "email" });
+// Fetch user from database
+const user = await prisma.user.findUnique({ where: { id: userId } });
 
-// Failed login attempt
-logAuthEvent("login", userId, false, { 
-  reason: "invalid_password",
-  ip: request.ip 
+// Log with type-safe serializer
+logger.info({ user }, "User logged in");
+// Output: {"level":30,"user":{"id":"...","name":"...","email":"z***g@example.com"}}
+
+// Fetch playground with relations
+const playground = await prisma.playGround.findUnique({
+	where: { id: playgroundId },
+	include: { _count: { select: { users: true } } },
 });
 
-// User signup
-logAuthEvent("signup", userId, true, { method: "email" });
-```
-
-#### Log Playground Activities
-
-```typescript
-import { logPlaygroundActivity } from "@/lib/logger";
-
-// User creates playground
-logPlaygroundActivity("create", playgroundId, userId, {
-  name: playground.name,
-  visibility: playground.visibility
-});
-
-// User joins playground
-logPlaygroundActivity("join", playgroundId, userId, {
-  inviteCode: code
-});
-
-// User leaves playground
-logPlaygroundActivity("leave", playgroundId, userId);
-```
-
-#### Log GPS Data
-
-```typescript
-import { logGpsPoint } from "@/lib/logger";
-
-// Log GPS point received
-logGpsPoint(runRecordId, pointCount, {
-  lat: point.lat,
-  lng: point.lng
-});
-```
-
-#### Log Database Operations
-
-```typescript
-import { logDatabaseOperation } from "@/lib/logger";
-
-const startTime = Date.now();
-const users = await prisma.user.findMany();
-const duration = Date.now() - startTime;
-
-logDatabaseOperation("findMany", "User", duration, {
-  count: users.length
-});
-```
-
-#### Log Redis Operations
-
-```typescript
-import { logRedisOperation } from "@/lib/logger";
-
-const startTime = Date.now();
-const value = await redis.get(key);
-const duration = Date.now() - startTime;
-
-logRedisOperation("get", key, duration, {
-  hit: !!value
-});
-```
-
-#### Log Errors
-
-```typescript
-import { logError } from "@/lib/logger";
-
-try {
-  // Your code
-} catch (error) {
-  logError(error as Error, {
-    operation: "createPlayground",
-    userId: session.user.id,
-    playgroundData: data
-  });
-  throw error;
-}
-```
-
-#### Log Security Events
-
-```typescript
-import { logSecurityEvent } from "@/lib/logger";
-
-// Failed authentication attempts
-logSecurityEvent("multiple_failed_login_attempts", "high", {
-  userId,
-  attemptCount: 5,
-  ip: request.ip
-});
-
-// Suspicious activity
-logSecurityEvent("rate_limit_exceeded", "medium", {
-  userId,
-  endpoint: "/api/playgrounds"
-});
-
-// Critical security issue
-logSecurityEvent("unauthorized_access_attempt", "critical", {
-  userId,
-  resource: "admin_panel"
-});
-```
-
-### Request Logger for API Routes
-
-```typescript
-import { createRequestLogger } from "@/lib/logger";
-
-export async function POST(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  const requestId = crypto.randomUUID();
-  
-  const logger = createRequestLogger(requestId, session?.user?.id);
-  
-  logger.info("Request received");
-  
-  try {
-    // Your handler logic
-    logger.debug("Processing request", { body: await request.json() });
-    
-    const result = await processRequest();
-    
-    logger.info("Request completed successfully");
-    return NextResponse.json(result);
-  } catch (error) {
-    logger.error({ err: error }, "Request failed");
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
-  }
-}
-```
-
-### Conditional Logging
-
-```typescript
-import { createConditionalLogger } from "@/lib/logger";
-
-// Only log when debug flag is enabled
-const debugLogger = createConditionalLogger(
-  () => process.env.DEBUG_GPS === "true"
-);
-
-debugLogger.info("This only logs when DEBUG_GPS=true");
+// Log with type-safe serializer
+logger.info({ playground }, "Playground activity");
+// Output: {"level":30,"playground":{"id":"...","name":"晨跑团","memberCount":15}}
 ```
 
 ## Configuration
@@ -331,6 +217,7 @@ DEBUG_GPS=true
 ### Output Format
 
 **Development** (pretty-printed):
+
 ```
 [2026-08-02 10:30:45] INFO (playground): Playground created
     playgroundId: "cm4abc123"
@@ -339,48 +226,315 @@ DEBUG_GPS=true
 ```
 
 **Production** (JSON):
+
 ```json
 {
-  "level": 30,
-  "time": "2026-08-02T10:30:45.123Z",
-  "pid": 12345,
-  "hostname": "server-01",
-  "env": "production",
-  "module": "playground",
-  "playgroundId": "cm4abc123",
-  "userId": "user123",
-  "name": "晨跑团",
-  "msg": "Playground created"
+	"level": 30,
+	"time": "2026-08-02T10:30:45.123Z",
+	"pid": 12345,
+	"hostname": "server-01",
+	"env": "production",
+	"module": "playground",
+	"playgroundId": "cm4abc123",
+	"userId": "user123",
+	"name": "晨跑团",
+	"msg": "Playground created"
 }
 ```
 
-## Custom Serializers
+## Helper Functions
 
-The logger automatically formats these objects:
+### Log API Requests
 
-### User Serializer
 ```typescript
-logger.info({ user }, "User logged in");
-// Email is masked: z***g@example.com
-// Only id, name, masked email are logged
+import { logApiRequest } from "@/lib/logger";
+
+export async function GET(request: Request) {
+	const startTime = Date.now();
+
+	// Your handler logic
+	const response = NextResponse.json({ data: "..." });
+
+	logApiRequest("GET", "/api/playgrounds", 200, Date.now() - startTime, {
+		userId: session.user.id,
+	});
+
+	return response;
+}
 ```
 
-### Playground Serializer
+### Log Authentication Events
+
 ```typescript
-logger.info({ playground }, "Playground activity");
-// Only id, name, visibility, memberCount are logged
+import { logAuthEvent } from "@/lib/logger";
+
+// Successful login
+logAuthEvent("login", userId, true, { method: "email" });
+
+// Failed login attempt
+logAuthEvent("login", userId, false, {
+	reason: "invalid_password",
+	ip: request.ip,
+});
+
+// User signup
+logAuthEvent("signup", userId, true, { method: "email" });
 ```
 
-### Run Record Serializer
+### Log Playground Activities
+
 ```typescript
-logger.info({ runRecord }, "Run completed");
-// Only id, userId, distance, duration, avgPace are logged
+import { logPlaygroundActivity } from "@/lib/logger";
+
+// User creates playground
+logPlaygroundActivity("create", playgroundId, userId, {
+	name: playground.name,
+	visibility: playground.visibility,
+});
+
+// User joins playground
+logPlaygroundActivity("join", playgroundId, userId, {
+	inviteCode: code,
+});
+
+// User leaves playground
+logPlaygroundActivity("leave", playgroundId, userId);
 ```
 
-### Error Serializer
+### Log GPS Data
+
 ```typescript
-logger.error({ err: error }, "Operation failed");
-// Includes error message, stack trace, and error type
+import { logGpsPoint } from "@/lib/logger";
+
+// Log GPS point received
+logGpsPoint(runRecordId, pointCount, {
+	lat: point.lat,
+	lng: point.lng,
+});
+```
+
+### Log Database Operations
+
+```typescript
+import { logDatabaseOperation } from "@/lib/logger";
+
+const startTime = Date.now();
+const users = await prisma.user.findMany();
+const duration = Date.now() - startTime;
+
+logDatabaseOperation("findMany", "User", duration, {
+	count: users.length,
+});
+```
+
+### Log Redis Operations
+
+```typescript
+import { logRedisOperation } from "@/lib/logger";
+
+const startTime = Date.now();
+const value = await redis.get(key);
+const duration = Date.now() - startTime;
+
+logRedisOperation("get", key, duration, {
+	hit: !!value,
+});
+```
+
+### Log Errors
+
+```typescript
+import { logError } from "@/lib/logger";
+
+try {
+	// Your code
+} catch (error) {
+	logError(error as Error, {
+		operation: "createPlayground",
+		userId: session.user.id,
+		playgroundData: data,
+	});
+	throw error;
+}
+```
+
+### Log Security Events
+
+```typescript
+import { logSecurityEvent } from "@/lib/logger";
+
+// Failed authentication attempts
+logSecurityEvent("multiple_failed_login_attempts", "high", {
+	userId,
+	attemptCount: 5,
+	ip: request.ip,
+});
+
+// Suspicious activity
+logSecurityEvent("rate_limit_exceeded", "medium", {
+	userId,
+	endpoint: "/api/playgrounds",
+});
+
+// Critical security issue
+logSecurityEvent("unauthorized_access_attempt", "critical", {
+	userId,
+	resource: "admin_panel",
+});
+```
+
+### Request Logger for API Routes
+
+```typescript
+import { createRequestLogger } from "@/lib/logger";
+
+export async function POST(request: Request) {
+	const session = await auth.api.getSession({ headers: await headers() });
+	const requestId = crypto.randomUUID();
+
+	const logger = createRequestLogger(requestId, session?.user?.id);
+
+	logger.info("Request received");
+
+	try {
+		// Your handler logic
+		logger.debug("Processing request", { body: await request.json() });
+
+		const result = await processRequest();
+
+		logger.info("Request completed successfully");
+		return NextResponse.json(result);
+	} catch (error) {
+		logger.error({ err: error }, "Request failed");
+		return NextResponse.json({ error: "Internal error" }, { status: 500 });
+	}
+}
+```
+
+### Conditional Logging
+
+```typescript
+import { createConditionalLogger } from "@/lib/logger";
+
+// Only log when debug flag is enabled
+const debugLogger = createConditionalLogger(
+	() => process.env.DEBUG_GPS === "true",
+);
+
+debugLogger.info("This only logs when DEBUG_GPS=true");
+```
+
+## Integration Examples
+
+### API Route with Full Logging
+
+```typescript
+import {
+	createRequestLogger,
+	PerformanceLogger,
+	logApiRequest,
+	logError,
+} from "@/lib/logger";
+
+export async function POST(request: Request) {
+	const startTime = Date.now();
+	const requestId = crypto.randomUUID();
+
+	const session = await auth.api.getSession({ headers: await headers() });
+	const logger = createRequestLogger(requestId, session?.user?.id);
+
+	logger.info("POST /api/playgrounds - Request received");
+
+	const perf = new PerformanceLogger("createPlayground", {
+		userId: session.user.id,
+		requestId,
+	});
+
+	try {
+		const body = await request.json();
+		logger.debug({ body }, "Request body parsed");
+
+		perf.checkpoint("validation");
+
+		const playground = await prisma.playGround.create({
+			data: { name: body.name /* ... */ },
+		});
+
+		perf.checkpoint("database");
+		perf.done({ playgroundId: playground.id });
+
+		const duration = Date.now() - startTime;
+		logApiRequest("POST", "/api/playgrounds", 201, duration, {
+			userId: session.user.id,
+			playgroundId: playground.id,
+		});
+
+		return NextResponse.json(playground, { status: 201 });
+	} catch (error) {
+		const duration = Date.now() - startTime;
+
+		perf.error(error as Error);
+		logError(error as Error, {
+			operation: "createPlayground",
+			userId: session.user.id,
+			requestId,
+		});
+
+		logApiRequest("POST", "/api/playgrounds", 500, duration, {
+			userId: session.user.id,
+			error: (error as Error).message,
+		});
+
+		return NextResponse.json(
+			{ error: "Failed to create playground" },
+			{ status: 500 },
+		);
+	}
+}
+```
+
+### Server Action with Logging
+
+```typescript
+import {
+	loggers,
+	PerformanceLogger,
+	logPlaygroundActivity,
+} from "@/lib/logger";
+
+export async function createPlayGround(data: CreatePlaygroundInput) {
+	const userId = await getUserId();
+	const perf = new PerformanceLogger("createPlayGround", { userId });
+
+	loggers.playground.info({ userId, name: data.name }, "Creating playground");
+
+	try {
+		const playground = await prisma.playGround.create({
+			data: {
+				name: data.name,
+				// ...
+				users: { create: { userId, role: "OWNER" } },
+			},
+		});
+
+		perf.done({ playgroundId: playground.id });
+
+		logPlaygroundActivity("create", playground.id, userId, {
+			name: playground.name,
+			visibility: playground.visibility,
+		});
+
+		revalidatePath("/dashboard");
+		return playground;
+	} catch (error) {
+		perf.error(error as Error);
+		loggers.playground.error(
+			{ err: error, userId, data },
+			"Failed to create playground",
+		);
+		throw error;
+	}
+}
 ```
 
 ## Best Practices
@@ -403,7 +557,10 @@ logger.error("User created playground"); // Not an error
 
 ```typescript
 // ✅ Good
-logger.info({ userId, playgroundId, operation: "join" }, "User joined playground");
+logger.info(
+	{ userId, playgroundId, operation: "join" },
+	"User joined playground",
+);
 
 // ❌ Bad
 logger.info("User joined");
@@ -445,114 +602,53 @@ const start = Date.now();
 logger.info(`Took ${Date.now() - start}ms`);
 ```
 
-## Integration Examples
-
-### API Route with Full Logging
+### 6. Use Type-Safe Serializers
 
 ```typescript
-import { createRequestLogger, PerformanceLogger } from "@/lib/logger";
-import { logApiRequest, logError } from "@/lib/logger";
+// ✅ Good - Uses Prisma types
+const user = await prisma.user.findUnique({ where: { id } });
+logger.info({ user }, "User logged in");
 
-export async function POST(request: Request) {
-  const startTime = Date.now();
-  const requestId = crypto.randomUUID();
-  
-  const session = await auth.api.getSession({ headers: await headers() });
-  const logger = createRequestLogger(requestId, session?.user?.id);
-  
-  logger.info("POST /api/playgrounds - Request received");
-  
-  const perf = new PerformanceLogger("createPlayground", {
-    userId: session.user.id,
-    requestId
-  });
-  
-  try {
-    const body = await request.json();
-    logger.debug({ body }, "Request body parsed");
-    
-    perf.checkpoint("validation");
-    
-    const playground = await prisma.playGround.create({
-      data: {
-        name: body.name,
-        // ...
-      }
-    });
-    
-    perf.checkpoint("database");
-    perf.done({ playgroundId: playground.id });
-    
-    const duration = Date.now() - startTime;
-    logApiRequest("POST", "/api/playgrounds", 201, duration, {
-      userId: session.user.id,
-      playgroundId: playground.id
-    });
-    
-    return NextResponse.json(playground, { status: 201 });
-  } catch (error) {
-    const duration = Date.now() - startTime;
-    
-    perf.error(error as Error);
-    logError(error as Error, {
-      operation: "createPlayground",
-      userId: session.user.id,
-      requestId
-    });
-    
-    logApiRequest("POST", "/api/playgrounds", 500, duration, {
-      userId: session.user.id,
-      error: (error as Error).message
-    });
-    
-    return NextResponse.json(
-      { error: "Failed to create playground" },
-      { status: 500 }
-    );
-  }
-}
+// ❌ Bad - Manual object construction
+logger.info(
+	{
+		user: { id: user.id, name: user.name },
+	},
+	"User logged in",
+);
 ```
 
-### Server Action with Logging
+## Custom Serializers
+
+The logger automatically formats these Prisma models:
+
+### User Serializer
 
 ```typescript
-import { loggers, PerformanceLogger, logPlaygroundActivity } from "@/lib/logger";
+logger.info({ user }, "User logged in");
+// Email is masked: z***g@example.com
+// Only id, name, masked email are logged
+```
 
-export async function createPlayGround(data: any) {
-  const userId = await getUserId();
-  const perf = new PerformanceLogger("createPlayGround", { userId });
-  
-  loggers.playground.info({ userId, name: data.name }, "Creating playground");
-  
-  try {
-    const playground = await prisma.playGround.create({
-      data: {
-        name: data.name,
-        // ...
-        users: {
-          create: { userId, role: "OWNER" }
-        }
-      }
-    });
-    
-    perf.done({ playgroundId: playground.id });
-    
-    logPlaygroundActivity("create", playground.id, userId, {
-      name: playground.name,
-      visibility: playground.visibility
-    });
-    
-    revalidatePath("/dashboard");
-    return playground;
-  } catch (error) {
-    perf.error(error as Error);
-    loggers.playground.error(
-      { err: error, userId, data },
-      "Failed to create playground"
-    );
-    throw error;
-  }
-}
+### Playground Serializer
+
+```typescript
+logger.info({ playground }, "Playground activity");
+// Only id, name, visibility, memberCount are logged
+```
+
+### Run Record Serializer
+
+```typescript
+logger.info({ runRecord }, "Run completed");
+// Only id, userId, distance, duration, avgPace are logged
+```
+
+### Error Serializer
+
+```typescript
+logger.error({ err: error }, "Operation failed");
+// Includes error message, stack trace, and error type
 ```
 
 ## Troubleshooting
@@ -560,6 +656,7 @@ export async function createPlayGround(data: any) {
 ### Logs not appearing in development?
 
 Check `LOG_LEVEL` environment variable:
+
 ```bash
 LOG_LEVEL=debug pnpm dev
 ```
@@ -567,6 +664,7 @@ LOG_LEVEL=debug pnpm dev
 ### Want JSON logs in development?
 
 Remove the `transport` section in `logger.ts` or set:
+
 ```bash
 NODE_ENV=production pnpm dev
 ```
@@ -574,6 +672,7 @@ NODE_ENV=production pnpm dev
 ### Logs cluttering test output?
 
 Tests automatically silence logs unless:
+
 ```bash
 LOG_IN_TESTS=true pnpm test
 ```
@@ -581,6 +680,7 @@ LOG_IN_TESTS=true pnpm test
 ### Need to debug a specific module?
 
 Use conditional logger:
+
 ```bash
 DEBUG_GPS=true pnpm dev
 ```
@@ -593,9 +693,51 @@ DEBUG_GPS=true pnpm dev
 - JSON logging in production is fast and machine-parseable
 - Child loggers reuse the base logger instance (efficient)
 
-## Migration Guide
+## API Reference
 
-### From console.log
+### Core Exports
+
+- `logger: Logger` - Base logger instance
+- `loggers: Record<string, Logger>` - Module-specific loggers
+- `createLogger(context?, moduleName?): Logger` - Create child logger
+- `PerformanceLogger` - Performance tracking class
+
+### Helper Functions
+
+- `createRequestLogger(requestId, userId?): Logger`
+- `logDatabaseOperation(operation, model, duration, context?)`
+- `logRedisOperation(operation, key, duration, context?)`
+- `logApiRequest(method, path, statusCode, duration, context?)`
+- `logGpsPoint(runRecordId, pointCount, context?)`
+- `logPlaygroundActivity(activity, playgroundId, userId, context?)`
+- `logAuthEvent(event, userId, success, context?)`
+- `logError(error, context?, customLogger?)`
+- `logSecurityEvent(event, severity, context?)`
+- `createConditionalLogger(condition, baseLogger?): Logger`
+
+### Types
+
+```typescript
+interface LogContext {
+	userId?: string;
+	playgroundId?: string;
+	runRecordId?: string;
+	requestId?: string;
+	sessionId?: string;
+	inviteCode?: string;
+	operation?: string;
+	duration?: number;
+	[key: string]:
+		| string
+		| number
+		| boolean
+		| null
+		| undefined
+		| Record<string, unknown>;
+}
+```
+
+## Migration from console.log
 
 ```typescript
 // Before
@@ -603,16 +745,6 @@ console.log("User created playground", playgroundId);
 
 // After
 loggers.playground.info({ playgroundId }, "User created playground");
-```
-
-### From custom logging
-
-```typescript
-// Before
-log("[AUTH] User login successful", userId);
-
-// After
-loggers.auth.info({ userId }, "User login successful");
 ```
 
 ## Future Enhancements
