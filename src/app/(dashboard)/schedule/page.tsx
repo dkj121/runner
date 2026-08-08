@@ -1,15 +1,64 @@
-import { Suspense } from "react";
-import { getUserSchedule, listMyPlayGrounds } from "@/lib/actions";
+"use client";
+
+import { useState, useEffect, Suspense } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, ChevronRight, Clock } from "lucide-react";
+import { Calendar, ChevronRight, Clock, Loader2 } from "lucide-react";
 import Link from "next/link";
 
-async function ScheduleContent() {
-	const playgrounds = await listMyPlayGrounds().catch(() => []);
-	const userSchedule = await getUserSchedule().catch(() => null);
+interface Playground {
+	id: string;
+	name: string;
+}
+
+interface SpotDate {
+	id: string;
+	weekDay: string;
+	date: string;
+	time: string;
+}
+
+interface UserSchedule {
+	spotDates: SpotDate[];
+}
+
+function ScheduleContent() {
+	const [playgrounds, setPlaygrounds] = useState<Playground[]>([]);
+	const [userSchedule, setUserSchedule] = useState<UserSchedule | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
+
+	useEffect(() => {
+		loadData();
+	}, []);
+
+	const loadData = async () => {
+		try {
+			// Get user's playgrounds
+			const playgroundsResponse = await fetch("/api/playgrounds");
+			if (playgroundsResponse.ok) {
+				const data = await playgroundsResponse.json();
+				setPlaygrounds(data.playgrounds || []);
+			}
+
+			// Get user schedule (API not implemented yet, using placeholder)
+			// const scheduleResponse = await fetch("/api/schedule");
+			// if (scheduleResponse.ok) {
+			//   const data = await scheduleResponse.json();
+			//   setUserSchedule(data);
+			// }
+			setUserSchedule({ spotDates: [] });
+		} catch (error) {
+			console.error("Failed to load schedule data:", error);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	if (isLoading) {
+		return <ScheduleSkeleton />;
+	}
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -116,7 +165,13 @@ export default function SchedulePage() {
 			<h1 className="font-heading text-xl font-semibold text-foreground">
 				日程
 			</h1>
-			<Suspense fallback={<ScheduleSkeleton />}>
+			<Suspense
+				fallback={
+					<div className="flex items-center justify-center py-8">
+						<Loader2 className="size-8 animate-spin text-muted-foreground" />
+					</div>
+				}
+			>
 				<ScheduleContent />
 			</Suspense>
 		</div>

@@ -1,23 +1,57 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
-import { listMyPlayGrounds } from "@/lib/actions";
+"use client";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Play, ChevronRight, MapPin } from "lucide-react";
+import { Play, ChevronRight, MapPin, Loader2 } from "lucide-react";
 import Link from "next/link";
 
-export default async function DashboardHome() {
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
+interface User {
+	id: string;
+	name: string;
+	email: string;
+}
 
-	const user = session?.user;
-	if (!user) return null; // layout handles redirect
+interface Playground {
+	id: string;
+	name: string;
+	visibility: "PUBLIC" | "PRIVATE";
+	_count: { members: number };
+}
 
-	const playgrounds = await listMyPlayGrounds().catch(() => []);
+export default function DashboardHome() {
+	const [user, setUser] = useState<User | null>(null);
+	const [playgrounds, setPlaygrounds] = useState<Playground[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
+
+	useEffect(() => {
+		loadData();
+	}, []);
+
+	const loadData = async () => {
+		try {
+			// Get user session
+			const sessionResponse = await fetch("/api/auth/get-session");
+			if (sessionResponse.ok) {
+				const session = await sessionResponse.json();
+				setUser(session.user || null);
+			}
+
+			// Get user's playgrounds
+			const playgroundsResponse = await fetch("/api/playgrounds");
+			if (playgroundsResponse.ok) {
+				const data = await playgroundsResponse.json();
+				setPlaygrounds(data.playgrounds || []);
+			}
+		} catch (error) {
+			console.error("Failed to load dashboard data:", error);
+		} finally {
+			setIsLoading(false);
+		}
+	};
 
 	const greeting = () => {
 		const hour = new Date().getHours();
@@ -27,6 +61,16 @@ export default async function DashboardHome() {
 		if (hour < 18) return "下午好";
 		return "晚上好";
 	};
+
+	if (isLoading) {
+		return (
+			<div className="flex min-h-screen items-center justify-center">
+				<Loader2 className="size-8 animate-spin text-muted-foreground" />
+			</div>
+		);
+	}
+
+	if (!user) return null;
 
 	return (
 		<div className="flex flex-col gap-6 px-5 py-6">
@@ -131,7 +175,7 @@ export default async function DashboardHome() {
 													{pg.name}
 												</p>
 												<p className="text-[12px] text-muted-foreground">
-													{pg._count.users} 人 ·{" "}
+													{pg._count.members} 人 ·{" "}
 													{pg.visibility === "PUBLIC" ? "公开" : "私有"}
 												</p>
 											</div>

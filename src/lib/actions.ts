@@ -11,6 +11,8 @@ import { createRunSession, clearRunSession } from "@/lib/gps-cache";
 
 export type OtpPurpose = "sign-in" | "email-verification" | "forget-password";
 
+/*
+
 async function getUserId(): Promise<string> {
 	const session = await auth.api.getSession({
 		headers: await headers(),
@@ -25,6 +27,8 @@ function generateCode(): string {
 	crypto.getRandomValues(randomBytes);
 	return Array.from(randomBytes, (b) => chars[b % chars.length]).join("");
 }
+
+*/
 
 // ─── Run Records ────────────────────────────────────────
 
@@ -103,7 +107,7 @@ export async function getRunRecord(runId: string) {
 	return record;
 }
 
-// ─── PlayGround CRUD ───────────────────────────────────
+/* ─── PlayGround CRUD ───────────────────────────────────
 
 export async function createPlayGround(data: {
 	name: string;
@@ -427,6 +431,8 @@ export async function getUserSchedule() {
 		include: { spotDates: { orderBy: { date: "asc" } } },
 	});
 }
+
+*/
 
 export async function resendOtp(email: string, type: OtpPurpose) {
 	const normalizedEmail = email.trim().toLowerCase();

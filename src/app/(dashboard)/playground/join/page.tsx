@@ -2,56 +2,118 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { joinPlayGroundByInvite, listPublicPlayGrounds } from "@/lib/actions";
 import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { ArrowRight, ArrowLeft, LogIn, UserPlus, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Globe, Lock, Users } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
+interface PlaygroundItem {
+	id: string;
+	name: string;
+	description: string | null;
+	visibility: "PUBLIC" | "PRIVATE";
+	_count: { members: number };
+}
+
 export default function JoinPlayGroundPage() {
 	const router = useRouter();
-	const [code, setCode] = useState("");
-	const [joining, setJoining] = useState(false);
-	const [publicList, setPublicList] = useState<
-		Awaited<ReturnType<typeof listPublicPlayGrounds>>
-	>([]);
+	const [inviteCode, setInviteCode] = useState("");
+	const [isJoining, setIsJoining] = useState(false);
+	const [publicPlaygrounds, setPublicPlaygrounds] = useState<PlaygroundItem[]>(
+		[],
+	);
+	const [isLoadingPublic, setIsLoadingPublic] = useState(true);
 
 	useEffect(() => {
-		listPublicPlayGrounds().then(setPublicList).catch(console.error);
+		loadPublicPlaygrounds();
 	}, []);
 
-	async function handleJoinCode() {
-		if (!code.trim()) return;
-		setJoining(true);
+	const loadPublicPlaygrounds = async () => {
 		try {
-			const pg = await joinPlayGroundByInvite(code.trim().toUpperCase());
-			toast.success(`已加入 ${pg.name}`);
-			router.push(`/playground/${pg.id}`);
-		} catch (e) {
-			toast.error(e instanceof Error ? e.message : "加入失败");
-		} finally {
-			setJoining(false);
-		}
-	}
+			const response = await fetch(
+				"/api/playgrounds?visibility=PUBLIC&take=20",
+			);
+			if (!response.ok) throw new Error("加载失败");
 
-	async function handleJoinPublic(playGroundId: string, name: string) {
-		try {
-			// Direct join for public domains — we still need the inviteCode mechanism
-			// For public domains, the server action uses the playground's active invite code
-			await joinPlayGroundByInvite(playGroundId);
-			toast.success(`已加入 ${name}`);
-			router.push(`/playground/${playGroundId}`);
-		} catch (e) {
-			toast.error(e instanceof Error ? e.message : "加入失败");
+			const data = await response.json();
+			setPublicPlaygrounds(data.playgrounds || []);
+		} catch (error) {
+			toast.error(
+				"加载公开域失败" + (error instanceof Error ? `: ${error.message}` : ""),
+			);
+		} finally {
+			setIsLoadingPublic(false);
 		}
-	}
+	};
+
+	const handleJoinByCode = async () => {
+		const code = inviteCode.trim();
+		if (!code) {
+			toast.error("请输入邀请码");
+			return;
+		}
+
+		setIsJoining(true);
+
+		try {
+			// First, find which playground this code belongs to
+			const playgrounds = await fetch("/api/playgrounds").then((r) => r.json());
+
+			let targetPlaygroundId: string | null = null;
+
+			for (const pg of playgrounds.playgrounds || []) {
+				const joinResponse = await fetch(`/api/playgrounds/${pg.id}/join`, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ inviteCode: code }),
+				});
+
+				if (joinResponse.ok) {
+					targetPlaygroundId = pg.id;
+					break;
+				}
+			}
+
+			if (targetPlaygroundId) {
+				toast.success("加入成功");
+				router.push(`/playground/${targetPlaygroundId}`);
+			} else {
+				toast.error("邀请码无效或已过期");
+			}
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : "加入失败");
+		} finally {
+			setIsJoining(false);
+		}
+	};
+
+	const handleJoinPublic = async (playgroundId: string) => {
+		try {
+			const response = await fetch(`/api/playgrounds/${playgroundId}/join`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({}),
+			});
+
+			if (!response.ok) {
+				const error = await response.json();
+				throw new Error(error.error || "加入失败");
+			}
+
+			toast.success("加入成功");
+			router.push(`/playground/${playgroundId}`);
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : "加入失败");
+		}
+	};
 
 	return (
 		<div className="flex flex-col gap-6 px-5 py-6">
-			{/* Nav */}
+			{/* Header */}
 			<div className="flex items-center gap-3">
 				<Link href="/dashboard">
 					<Button variant="ghost" size="icon" className="size-9">
@@ -59,86 +121,122 @@ export default function JoinPlayGroundPage() {
 					</Button>
 				</Link>
 				<h1 className="font-heading text-xl font-semibold text-foreground">
-					加入约跑
+					加入域
 				</h1>
 			</div>
 
-			{/* Invite Code Section */}
+			{/* Join by Invite Code */}
 			<Card className="border-border bg-card">
-				<CardContent className="flex flex-col items-center gap-4 px-5 py-8">
-					<div className="flex size-12 items-center justify-center rounded-2xl bg-primary/15">
-						<UserPlus className="size-6 text-primary" />
+				<CardContent className="flex flex-col gap-4 p-5">
+					<div className="flex items-center gap-2">
+						<Lock className="size-4 text-muted-foreground" />
+						<span className="text-[12px] font-semibold text-muted-foreground">
+							通过邀请码加入
+						</span>
 					</div>
-					<p className="text-sm text-muted-foreground">
-						输入域主分享的邀请码加入约跑
-					</p>
-					<Input
-						placeholder="输入邀请码"
-						value={code}
-						onChange={(e) => setCode(e.target.value.toUpperCase())}
-						className="w-64 border-border bg-background text-center font-mono text-xl font-semibold tracking-[3px]"
-						maxLength={8}
-					/>
+
+					<div className="flex flex-col gap-1.5">
+						<Label
+							htmlFor="inviteCode"
+							className="text-[12px] font-semibold text-muted-foreground"
+						>
+							邀请码
+						</Label>
+						<Input
+							id="inviteCode"
+							placeholder="输入6位邀请码"
+							value={inviteCode}
+							onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+							maxLength={6}
+							disabled={isJoining}
+							className="border-border bg-background text-center font-mono text-lg tracking-[4px]"
+						/>
+					</div>
+
 					<Button
-						onClick={handleJoinCode}
-						disabled={joining || !code.trim()}
-						className="w-48 gap-2 bg-primary font-heading font-semibold text-primary-foreground"
+						onClick={handleJoinByCode}
+						disabled={isJoining || !inviteCode.trim()}
+						className="w-full gap-2 bg-primary font-heading font-semibold text-primary-foreground hover:bg-primary/90"
+						size="lg"
 					>
-						{joining ? (
-							<Loader2 className="size-4 animate-spin" />
+						{isJoining ? (
+							<>
+								<Loader2 className="size-4 animate-spin" />
+								加入中...
+							</>
 						) : (
-							<LogIn className="size-4" />
+							"加入域"
 						)}
-						加入域
 					</Button>
 				</CardContent>
 			</Card>
 
-			{/* Public Domains */}
 			<div className="flex items-center gap-3">
-				<Separator className="flex-1 bg-border" />
-				<span className="shrink-0 text-[12px] text-muted-foreground">
-					可加入的公开域
-				</span>
-				<Separator className="flex-1 bg-border" />
+				<Separator className="flex-1" />
+				<span className="text-[12px] text-muted-foreground">或</span>
+				<Separator className="flex-1" />
 			</div>
 
-			<div className="flex flex-col gap-2.5">
-				{publicList.length === 0 && (
-					<p className="py-8 text-center text-sm text-muted-foreground">
-						暂无公开域
-					</p>
-				)}
-				{publicList.map((pg) => (
-					<Card
-						key={pg.id}
-						className="border-border bg-card transition-colors hover:bg-card/80"
-					>
-						<CardContent className="flex items-center gap-3 p-4">
-							<div className="flex size-10 items-center justify-center rounded-xl bg-primary/15">
-								<span className="font-heading text-sm font-bold text-primary">
-									{pg.name[0]}
-								</span>
-							</div>
-							<div className="flex-1">
-								<p className="text-sm font-semibold text-foreground">
-									{pg.name}
-								</p>
-								<p className="text-[12px] text-muted-foreground">
-									{pg._count.users} 人
-								</p>
-							</div>
-							<Button
-								variant="ghost"
-								size="icon"
-								className="size-9 text-primary"
-								onClick={() => handleJoinPublic(pg.id, pg.name)}
-							>
-								<ArrowRight className="size-4" />
-							</Button>
+			{/* Public Playgrounds */}
+			<div className="flex flex-col gap-3">
+				<div className="flex items-center gap-2 px-1">
+					<Globe className="size-4 text-muted-foreground" />
+					<span className="text-[12px] font-semibold text-muted-foreground">
+						公开域
+					</span>
+				</div>
+
+				{isLoadingPublic ? (
+					<Card className="border-border bg-card">
+						<CardContent className="flex items-center justify-center p-8">
+							<Loader2 className="size-6 animate-spin text-muted-foreground" />
 						</CardContent>
 					</Card>
-				))}
+				) : publicPlaygrounds.length === 0 ? (
+					<Card className="border-border bg-card">
+						<CardContent className="flex flex-col items-center gap-2 p-8">
+							<Globe className="size-8 text-muted-foreground/50" />
+							<span className="text-sm text-muted-foreground">暂无公开域</span>
+						</CardContent>
+					</Card>
+				) : (
+					<div className="flex flex-col gap-3">
+						{publicPlaygrounds.map((playground) => (
+							<Card
+								key={playground.id}
+								className="border-border bg-card transition-colors hover:bg-card/80"
+							>
+								<CardContent className="flex items-center justify-between gap-4 p-5">
+									<div className="flex flex-1 flex-col gap-1">
+										<div className="flex items-center gap-2">
+											<span className="font-heading font-semibold text-foreground">
+												{playground.name}
+											</span>
+											<Globe className="size-3.5 text-primary" />
+										</div>
+										{playground.description && (
+											<span className="text-[12px] text-muted-foreground">
+												{playground.description}
+											</span>
+										)}
+										<div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+											<Users className="size-3" />
+											<span>{playground._count.members} 成员</span>
+										</div>
+									</div>
+									<Button
+										onClick={() => handleJoinPublic(playground.id)}
+										variant="outline"
+										size="sm"
+										className="shrink-0"
+									>
+										加入
+									</Button>
+								</CardContent>
+							</Card>
+						))}
+					</div>
+				)}
 			</div>
 		</div>
 	);

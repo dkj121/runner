@@ -1,4 +1,6 @@
-import { Suspense } from "react";
+"use client";
+
+import { useState, useEffect, useCallback, Suspense } from "react";
 import {
 	Table,
 	TableBody,
@@ -9,13 +11,44 @@ import {
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, Medal } from "lucide-react";
-import { getPlayGroundLeaderboard } from "@/lib/actions";
+import { Trophy, Medal, Loader2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
-async function LeaderboardContent({ playgroundId }: { playgroundId: string }) {
-	const leaderboard = await getPlayGroundLeaderboard(playgroundId).catch(
-		() => [],
-	);
+interface LeaderboardEntry {
+	userId: string;
+	name: string;
+	totalDistance: number;
+	totalTime: number;
+	runCount: number;
+}
+
+function LeaderboardContent({ playgroundId }: { playgroundId: string }) {
+	const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
+
+	const loadLeaderboard = useCallback(async () => {
+		try {
+			const response = await fetch(
+				`/api/playgrounds/${playgroundId}/leaderboard`,
+			);
+			if (response.ok) {
+				const data = await response.json();
+				setLeaderboard(data.leaderboard || []);
+			}
+		} catch (error) {
+			console.error("Failed to load leaderboard:", error);
+		} finally {
+			setIsLoading(false);
+		}
+	}, [playgroundId]);
+
+	useEffect(() => {
+		loadLeaderboard();
+	}, [loadLeaderboard]);
+
+	if (isLoading) {
+		return <LeaderboardSkeleton />;
+	}
 
 	if (leaderboard.length === 0) {
 		return (
@@ -41,6 +74,7 @@ async function LeaderboardContent({ playgroundId }: { playgroundId: string }) {
 					const order = [1, 0, 2]; // 2nd, 1st, 3rd visual order
 					const idx = order[i];
 					const entry = leaderboard[idx];
+					if (!entry) return null;
 					return (
 						<div
 							key={entry.userId}
@@ -144,12 +178,9 @@ function LeaderboardSkeleton() {
 	);
 }
 
-export default async function LeaderboardPage({
-	searchParams,
-}: {
-	searchParams: Promise<{ playgroundId?: string }>;
-}) {
-	const { playgroundId } = await searchParams;
+function LeaderboardPageContent() {
+	const searchParams = useSearchParams();
+	const playgroundId = searchParams.get("playgroundId");
 
 	return (
 		<div className="flex flex-col gap-6 px-5 py-6">
@@ -158,9 +189,7 @@ export default async function LeaderboardPage({
 			</h1>
 
 			{playgroundId ? (
-				<Suspense fallback={<LeaderboardSkeleton />}>
-					<LeaderboardContent playgroundId={playgroundId} />
-				</Suspense>
+				<LeaderboardContent playgroundId={playgroundId} />
 			) : (
 				<div className="flex flex-col items-center gap-4 py-16">
 					<Trophy className="size-12 text-muted-foreground/30" />
@@ -170,5 +199,19 @@ export default async function LeaderboardPage({
 				</div>
 			)}
 		</div>
+	);
+}
+
+export default function LeaderboardPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="flex min-h-screen items-center justify-center">
+					<Loader2 className="size-8 animate-spin text-muted-foreground" />
+				</div>
+			}
+		>
+			<LeaderboardPageContent />
+		</Suspense>
 	);
 }
