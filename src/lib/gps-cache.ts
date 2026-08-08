@@ -92,7 +92,7 @@ export async function getRunMeta(runId: string) {
 export async function clearRunSession(runId: string, userId: string) {
 	try {
 		const redis = await getRedis();
-		await redis.del([metaKey(runId), activeKey(userId)]);
+		await redis.del([metaKey(runId), activeKey(userId), pointsKey(runId)]);
 	} catch (e) {
 		console.error("[gps-cache] clearRunSession:", e);
 	}

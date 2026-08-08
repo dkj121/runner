@@ -12,6 +12,7 @@ const RunMap = lazy(() => import("@/components/map-loader"));
 interface SplitRow {
 	km: number;
 	pace: string;
+	duration: number;
 	barH: number;
 	barColor: string;
 }
@@ -39,9 +40,13 @@ function formatDate(iso: string) {
 }
 
 function formatDuration(s: number): string {
-	const m = Math.floor(s / 60);
+	const hours = Math.floor(s / 3600);
+	const minutes = Math.floor((s % 3600) / 60);
 	const sec = s % 60;
-	return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+	if (hours > 0) {
+		return `${hours}:${String(minutes).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+	}
+	return `${String(minutes).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
 }
 
 function formatPace(pace: string): string {
@@ -99,6 +104,7 @@ export default function SummaryPage() {
 				? rawSplits.map((s) => ({
 						km: s.km,
 						pace: formatPace(s.pace),
+						duration: s.duration,
 						barH: paceToBarH(s.pace),
 						barColor: paceToBarH(s.pace) >= 70 ? "bg-primary" : "bg-orange-500",
 					}))
@@ -185,7 +191,7 @@ export default function SummaryPage() {
 				</div>
 			)}
 
-			<Card className="items-center gap-2 border border-[var(--color-primary)/20] py-6 shadow-[0_0_40px_hsl(22_100%_56%/0.08)]">
+			<Card className="items-center gap-2 border border-primary/20 py-6 shadow-[0_0_40px_hsl(22_100%_56%/0.08)]">
 				<div className="font-mono text-5xl font-bold tracking-tighter text-primary">
 					{data.distance}
 				</div>
@@ -273,7 +279,7 @@ export default function SummaryPage() {
 										{row.pace}
 									</div>
 									<div className="flex-1 text-center text-[13px] text-foreground">
-										--
+										{formatDuration(row.duration)}
 									</div>
 								</div>
 							))}

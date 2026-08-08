@@ -16,7 +16,7 @@ interface UseGpsTrackingOptions {
 }
 
 const DENSITY_INTERVAL: Record<SamplingDensity, number> = {
-	high: 0,
+	high: 1000,
 	medium: 5000,
 	low: 10000,
 };

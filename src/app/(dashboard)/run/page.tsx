@@ -93,6 +93,21 @@ export default function RunPage() {
 		<div className="flex flex-1 flex-col gap-5 px-5 pt-4 pb-4">
 			<RunMap track={tracker.track} />
 
+			{tracker.gpsState?.error && (
+				<div className="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3">
+					<span className="flex-1 text-sm text-destructive">
+						{tracker.gpsState.error}
+					</span>
+					<button
+						type="button"
+						onClick={tracker.retryGps}
+						className="rounded-md border border-destructive/50 px-3 py-1 text-xs text-destructive"
+					>
+						重试
+					</button>
+				</div>
+			)}
+
 			<div className="flex flex-col items-center gap-1">
 				<span className="font-mono text-5xl font-bold tracking-wider text-primary">
 					{tracker.duration}

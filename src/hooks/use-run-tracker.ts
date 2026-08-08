@@ -142,6 +142,18 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 	const start = useCallback(async () => {
 		if (!userId) return;
 
+		try {
+			const res = await fetch("/api/runs", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+			});
+			const data = await res.json();
+			runIdRef.current = data.runId;
+		} catch (e) {
+			console.error("创建跑步会话失败", e);
+			return;
+		}
+
 		accumulatedRef.current = 0;
 		distanceMetersRef.current = 0;
 		splitStartRef.current = Date.now();
@@ -155,18 +167,6 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 		setSplits([]);
 		lastPoint.current = null;
 		pointQueue.current = [];
-
-		try {
-			const res = await fetch("/api/runs", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-			});
-			const data = await res.json();
-			runIdRef.current = data.runId;
-		} catch (e) {
-			console.error("创建跑步会话失败", e);
-			return;
-		}
 
 		flushTimer.current = setInterval(flushPoints, 15000);
 		startTimer();
@@ -187,8 +187,11 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 
 	const getSnapshot = useCallback(() => {
 		const now = Date.now();
-		const finalDuration =
-			accumulatedRef.current + Math.floor((now - startTime.current) / 1000);
+		const liveDelta =
+			timer.current !== null
+				? Math.floor((now - startTime.current) / 1000)
+				: 0;
+		const finalDuration = accumulatedRef.current + liveDelta;
 		const distKm = parseFloat(distance.toFixed(2));
 		const calories = Math.round(distKm * 70);
 		return {
@@ -256,6 +259,8 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 		splits,
 		calories,
 		track,
+		gpsState: gps.state,
+		retryGps: gps.startTracking,
 		start,
 		pause,
 		resume,

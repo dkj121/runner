@@ -14,7 +14,7 @@ let sdkPromise: Promise<AMapSDK> | null = null;
 
 export function loadAMapSDK(): Promise<AMapSDK> {
 	if (!process.env.NEXT_PUBLIC_AMAP_KEY) {
-		throw new Error("NEXT_PUBLIC_AMAP_KEY 未配置");
+		return Promise.reject(new Error("NEXT_PUBLIC_AMAP_KEY 未配置"));
 	}
 	if (!sdkPromise) {
 		sdkPromise = AMapLoader.load({
