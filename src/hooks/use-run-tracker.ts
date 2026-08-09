@@ -188,9 +188,7 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 	const getSnapshot = useCallback(() => {
 		const now = Date.now();
 		const liveDelta =
-			timer.current !== null
-				? Math.floor((now - startTime.current) / 1000)
-				: 0;
+			timer.current !== null ? Math.floor((now - startTime.current) / 1000) : 0;
 		const finalDuration = accumulatedRef.current + liveDelta;
 		const distKm = parseFloat(distance.toFixed(2));
 		const calories = Math.round(distKm * 70);
