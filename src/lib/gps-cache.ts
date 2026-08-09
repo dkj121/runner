@@ -64,10 +64,7 @@ export async function getActiveRunId(userId: string): Promise<string | null> {
 
 export async function getRunMeta(runId: string) {
 	const redis = await getRedis();
-	return (await redis.hGetAll(metaKey(runId))) as Record<
-		string,
-		string
-	> | null;
+	return (await redis.hGetAll(metaKey(runId))) as Record<string, string> | null;
 }
 
 export async function clearRunSession(runId: string, userId: string) {

@@ -11,55 +11,53 @@ export const GET = createRoute({
 	method: "GET",
 	path: "/api/playgrounds/[id]/members",
 	operation: "listPlaygroundMembers",
-})(
-	async ({ params, session, logger, perf }) => {
-		const { id } = params;
+})(async ({ params, session, logger, perf }) => {
+	const { id } = params;
 
-		logger.debug({ playgroundId: id }, "Fetching playground members");
+	logger.debug({ playgroundId: id }, "Fetching playground members");
 
-		const playground = await prisma.playGround.findUnique({
-			where: { id },
-			select: { visibility: true },
+	const playground = await prisma.playGround.findUnique({
+		where: { id },
+		select: { visibility: true },
+	});
+
+	if (!playground) {
+		return NextResponse.json(
+			{ error: "Playground not found" },
+			{ status: 404 },
+		);
+	}
+
+	perf.checkpoint("playground_fetched");
+
+	// Check visibility permissions
+	if (playground.visibility === "PRIVATE") {
+		if (!session?.user?.id) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+		const isMember = await prisma.playGroundUser.findFirst({
+			where: { playGroundId: id, userId: session.user.id },
 		});
-
-		if (!playground) {
-			return NextResponse.json(
-				{ error: "Playground not found" },
-				{ status: 404 },
+		if (!isMember) {
+			logger.warn(
+				{ playgroundId: id, userId: session.user.id },
+				"Non-member attempted to view private playground members",
 			);
+			return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 		}
+	}
 
-		perf.checkpoint("playground_fetched");
+	perf.checkpoint("access_verified");
 
-		// Check visibility permissions
-		if (playground.visibility === "PRIVATE") {
-			if (!session?.user?.id) {
-				return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-			}
-			const isMember = await prisma.playGroundUser.findFirst({
-				where: { playGroundId: id, userId: session.user.id },
-			});
-			if (!isMember) {
-				logger.warn(
-					{ playgroundId: id, userId: session.user.id },
-					"Non-member attempted to view private playground members",
-				);
-				return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-			}
-		}
+	const members = await prisma.playGroundUser.findMany({
+		where: { playGroundId: id },
+		include: {
+			user: { select: { id: true, name: true, image: true, email: true } },
+		},
+		orderBy: [{ role: "desc" }, { createdAt: "asc" }],
+	});
 
-		perf.checkpoint("access_verified");
+	perf.done({ memberCount: members.length });
 
-		const members = await prisma.playGroundUser.findMany({
-			where: { playGroundId: id },
-			include: {
-				user: { select: { id: true, name: true, image: true, email: true } },
-			},
-			orderBy: [{ role: "desc" }, { createdAt: "asc" }],
-		});
-
-		perf.done({ memberCount: members.length });
-
-		return NextResponse.json({ members });
-	},
-);
+	return NextResponse.json({ members });
+});

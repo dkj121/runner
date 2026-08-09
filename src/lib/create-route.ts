@@ -67,18 +67,16 @@ export function createRoute(opts: CreateRouteOptions) {
 			const userId = session?.user?.id;
 
 			const logger = createRequestLogger(requestId, userId);
-			const perf = new PerformanceLogger(
-				operation ?? `${method} ${path}`,
-				{ userId, requestId, ...resolvedParams },
-			);
+			const perf = new PerformanceLogger(operation ?? `${method} ${path}`, {
+				userId,
+				requestId,
+				...resolvedParams,
+			});
 
 			// 强制鉴权：未登录 → 401
 			if (requireAuth && !userId) {
 				logApiRequest(method, path, 401, Date.now() - startTime);
-				return NextResponse.json(
-					{ error: "Unauthorized" },
-					{ status: 401 },
-				);
+				return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 			}
 
 			try {
