@@ -21,79 +21,56 @@ function activeKey(userId: string) {
 	return `run:active:${userId}`;
 }
 
+/**
+ * 这些函数不再吞掉 Redis 错误 —— 错误会向上抛出，由调用方决定如何处理。
+ * 关键数据写入（pushPoints）必须让调用方感知失败，避免静默丢失。
+ */
 export async function createRunSession(runId: string, userId: string) {
-	try {
-		const redis = await getRedis();
-		await redis
-			.multi()
-			.hSet(metaKey(runId), {
-				userId,
-				startTime: Date.now(),
-				status: "active",
-			})
-			.expire(metaKey(runId), RUN_TTL)
-			.set(activeKey(userId), runId, { EX: RUN_TTL })
-			.exec();
-	} catch (e) {
-		console.error("[gps-cache] createRunSession:", e);
-	}
+	const redis = await getRedis();
+	await redis
+		.multi()
+		.hSet(metaKey(runId), {
+			userId,
+			startTime: Date.now(),
+			status: "active",
+		})
+		.expire(metaKey(runId), RUN_TTL)
+		.set(activeKey(userId), runId, { EX: RUN_TTL })
+		.exec();
 }
 
 export async function pushPoints(runId: string, points: GpsPoint[]) {
 	if (points.length === 0) return;
-	try {
-		const redis = await getRedis();
-		const key = pointsKey(runId);
-		const pipe = redis.multi();
-		for (const p of points) {
-			pipe.lPush(key, JSON.stringify(p));
-		}
-		pipe.expire(key, RUN_TTL);
-		await pipe.exec();
-	} catch (e) {
-		console.error("[gps-cache] pushPoints:", e);
+	const redis = await getRedis();
+	const key = pointsKey(runId);
+	const pipe = redis.multi();
+	for (const p of points) {
+		pipe.lPush(key, JSON.stringify(p));
 	}
+	pipe.expire(key, RUN_TTL);
+	await pipe.exec();
 }
 
 export async function getAllPoints(runId: string): Promise<GpsPoint[]> {
-	try {
-		const redis = await getRedis();
-		const raw = await redis.lRange(pointsKey(runId), 0, -1);
-		return raw.reverse().map((s) => JSON.parse(s) as GpsPoint);
-	} catch (e) {
-		console.error("[gps-cache] getAllPoints:", e);
-		return [];
-	}
+	const redis = await getRedis();
+	const raw = await redis.lRange(pointsKey(runId), 0, -1);
+	return raw.reverse().map((s) => JSON.parse(s) as GpsPoint);
 }
 
 export async function getActiveRunId(userId: string): Promise<string | null> {
-	try {
-		const redis = await getRedis();
-		return await redis.get(activeKey(userId));
-	} catch (e) {
-		console.error("[gps-cache] getActiveRunId:", e);
-		return null;
-	}
+	const redis = await getRedis();
+	return await redis.get(activeKey(userId));
 }
 
 export async function getRunMeta(runId: string) {
-	try {
-		const redis = await getRedis();
-		return (await redis.hGetAll(metaKey(runId))) as Record<
-			string,
-			string
-		> | null;
-	} catch (e) {
-		console.error("[gps-cache] getRunMeta:", e);
-		return null;
-	}
+	const redis = await getRedis();
+	return (await redis.hGetAll(metaKey(runId))) as Record<
+		string,
+		string
+	> | null;
 }
 
 export async function clearRunSession(runId: string, userId: string) {
-	try {
-		const redis = await getRedis();
-		await redis.del([metaKey(runId), activeKey(userId), pointsKey(runId)]);
-	} catch (e) {
-		console.error("[gps-cache] clearRunSession:", e);
-	}
+	const redis = await getRedis();
+	await redis.del([metaKey(runId), activeKey(userId), pointsKey(runId)]);
 }

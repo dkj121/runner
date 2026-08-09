@@ -6,6 +6,7 @@ import { ArrowLeft, Loader2, MapIcon } from "lucide-react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { useSession } from "@/lib/auth-client";
+import { formatDuration } from "@/lib/track-calc";
 
 const RunMap = lazy(() => import("@/components/map-loader"));
 
@@ -39,16 +40,7 @@ function formatDate(iso: string) {
 	return `${y}年${m}月${day}日 ${hh}:${mm}`;
 }
 
-function formatDuration(s: number): string {
-	const hours = Math.floor(s / 3600);
-	const minutes = Math.floor((s % 3600) / 60);
-	const sec = s % 60;
-	if (hours > 0) {
-		return `${hours}:${String(minutes).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
-	}
-	return `${String(minutes).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
-}
-
+// formatPace 是 summary 页特有的展示格式化（"5:30 /km" → "5'30\""），非重复实现，保留本地
 function formatPace(pace: string): string {
 	// "5:30 /km" → "5'30""
 	const match = pace.match(/(\d+):(\d+)/);
