@@ -1,63 +1,74 @@
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { pushPoints, getAllPoints } from "@/lib/gps-cache";
+import { logError } from "@/lib/logger";
+import { createRoute } from "@/lib/create-route";
 
-export async function GET(
-	_request: Request,
-	{ params }: { params: Promise<{ runId: string }> },
-) {
-	const session = await auth.api.getSession({ headers: await headers() });
-	if (!session?.user?.id) {
-		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-	}
+export const GET = createRoute({
+	method: "GET",
+	path: "/api/runs/[runId]/points",
+	auth: true,
+	operation: "getRunPoints",
+})(
+	async ({ params, user }) => {
+		const { runId } = params;
 
-	const { runId } = await params;
+		const record = await prisma.runRecord.findUnique({
+			where: { id: runId },
+			select: { userId: true },
+		});
 
-	const record = await prisma.runRecord.findUnique({
-		where: { id: runId },
-		select: { userId: true },
-	});
+		if (!record || record.userId !== user!.id) {
+			return NextResponse.json({ error: "not found" }, { status: 404 });
+		}
 
-	if (!record || record.userId !== session.user.id) {
-		return NextResponse.json({ error: "not found" }, { status: 404 });
-	}
+		const points = await getAllPoints(runId);
+		return NextResponse.json({ points });
+	},
+);
 
-	const points = await getAllPoints(runId);
-	return NextResponse.json({ points });
-}
+export const POST = createRoute({
+	method: "POST",
+	path: "/api/runs/[runId]/points",
+	auth: true,
+	operation: "pushRunPoints",
+})(
+	async ({ request, params, user }) => {
+		const { runId } = params;
 
-export async function POST(
-	request: Request,
-	{ params }: { params: Promise<{ runId: string }> },
-) {
-	const session = await auth.api.getSession({ headers: await headers() });
-	if (!session?.user?.id) {
-		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-	}
+		const record = await prisma.runRecord.findUnique({
+			where: { id: runId },
+			select: { userId: true },
+		});
 
-	const { runId } = await params;
+		if (!record || record.userId !== user!.id) {
+			return NextResponse.json({ error: "not found" }, { status: 404 });
+		}
 
-	const record = await prisma.runRecord.findUnique({
-		where: { id: runId },
-		select: { userId: true },
-	});
+		const body = await request.json();
 
-	if (!record || record.userId !== session.user.id) {
-		return NextResponse.json({ error: "not found" }, { status: 404 });
-	}
+		if (!body.points || !Array.isArray(body.points)) {
+			return NextResponse.json(
+				{ error: "points array required" },
+				{ status: 400 },
+			);
+		}
 
-	const body = await request.json();
+		try {
+			await pushPoints(runId, body.points);
+		} catch (e) {
+			// 关键数据写入：GPS 轨迹点不能静默丢失，必须让调用端感知失败
+			logError(e instanceof Error ? e : new Error(String(e)), {
+				userId: user!.id,
+				runRecordId: runId,
+				operation: "pushPoints",
+			});
+			return NextResponse.json(
+				{ error: "GPS 数据暂存失败" },
+				{ status: 503 },
+			);
+		}
 
-	if (!body.points || !Array.isArray(body.points)) {
-		return NextResponse.json(
-			{ error: "points array required" },
-			{ status: 400 },
-		);
-	}
-
-	await pushPoints(runId, body.points);
-
-	return NextResponse.json({ ok: true });
-}
+		return NextResponse.json({ ok: true });
+	},
+);
