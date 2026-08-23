@@ -27,7 +27,8 @@ interface RunData {
 	startTime: string;
 	endTime: string;
 	splits: SplitRow[] | null;
-	trackPoints?: { lat: number; lng: number }[];
+	trackPoints?: { lat: number; lng: number; segmentIndex?: number }[];
+	correctionPercent?: number;
 }
 
 function formatDate(iso: string) {
@@ -102,9 +103,24 @@ export default function SummaryPage() {
 					}))
 				: null;
 
-			const rawTrack = record.trackPoints as
-				| { lat: number; lng: number; timestamp: number }[]
+			const storedTrack = record.trackPoints as
+				| {
+						lat: number;
+						lng: number;
+						timestamp: number;
+						segmentIndex?: number;
+				  }[]
+				| { segments: { lat: number; lng: number; segmentIndex?: number }[][] }
 				| null;
+			const rawTrack = Array.isArray(storedTrack)
+				? storedTrack
+				: (storedTrack?.segments.flat() ?? null);
+			const correctionPercent =
+				record.previewDistanceMeters > 0
+					? (Math.abs(record.distanceMeters - record.previewDistanceMeters) /
+							record.previewDistanceMeters) *
+						100
+					: 0;
 
 			setData({
 				id: record.id,
@@ -115,7 +131,12 @@ export default function SummaryPage() {
 				startTime: record.startTime,
 				endTime: record.endTime,
 				splits,
-				trackPoints: rawTrack?.map((p) => ({ lat: p.lat, lng: p.lng })),
+				trackPoints: rawTrack?.map((p) => ({
+					lat: p.lat,
+					lng: p.lng,
+					segmentIndex: p.segmentIndex,
+				})),
+				correctionPercent,
 			});
 		} catch (e) {
 			console.error("加载跑步记录失败", e);
@@ -181,6 +202,12 @@ export default function SummaryPage() {
 					<MapIcon className="size-4" />
 					无轨迹数据
 				</div>
+			)}
+			{(data.correctionPercent ?? 0) > 5 && (
+				<p className="rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground">
+					服务端已根据有效轨迹修正距离，调整幅度为
+					{data.correctionPercent!.toFixed(1)}%。
+				</p>
 			)}
 
 			<Card className="items-center gap-2 border border-primary/20 py-6 shadow-[0_0_40px_hsl(22_100%_56%/0.08)]">

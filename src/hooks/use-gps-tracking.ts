@@ -8,6 +8,8 @@ interface GpsPoint {
 	lat: number;
 	lng: number;
 	timestamp: number;
+	accuracy: number;
+	altitude: number | null;
 }
 
 interface UseGpsTrackingOptions {
@@ -42,6 +44,7 @@ export default function useGpsTracking({
 	});
 
 	onPointRef.current = onPoint;
+	intervalRef.current = DENSITY_INTERVAL[samplingDensity];
 
 	const startTracking = useCallback(() => {
 		if (!navigator.geolocation) {
@@ -63,6 +66,8 @@ export default function useGpsTracking({
 					lat: pos.coords.latitude,
 					lng: pos.coords.longitude,
 					timestamp: pos.timestamp,
+					accuracy: pos.coords.accuracy,
+					altitude: pos.coords.altitude,
 				};
 
 				onPointRef.current(point);

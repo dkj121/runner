@@ -1,3 +1,9 @@
+enum RunStatus {
+  ACTIVE
+  PENDING_COMPLETION
+  COMPLETED
+}
+
 model TotalRunRecord {
   id            String   @id @default(cuid())
   user          User     @relation(fields: [userId], references: [id], map: "total_run_record_user_id_fkey")
@@ -21,8 +27,14 @@ model RunRecord {
   playGroundRankingListId String?
   startTime               DateTime
   endTime                 DateTime?
+  status                  RunStatus              @default(ACTIVE)
+  activeSessionOwnerId    String?                @unique(map: "unique_active_run_session_owner") @map("active_session_owner_id")
   duration                Int                    @default(0)
+  durationSeconds         Int                    @default(0) @map("duration_seconds")
   distance                Float                  @default(0)
+  distanceMeters          Float                  @default(0) @map("distance_meters")
+  previewDistanceMeters   Float?                 @map("preview_distance_meters")
+  paceSecondsPerKm        Int?                   @map("pace_seconds_per_km")
   avgPace                 String                 @default("")
   trackPoints             Json?                  @map("track_points")
   calories                Int                    @default(0)

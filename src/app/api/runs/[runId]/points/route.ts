@@ -14,10 +14,10 @@ export const GET = createRoute({
 
 	const record = await prisma.runRecord.findUnique({
 		where: { id: runId },
-		select: { userId: true },
+		select: { userId: true, status: true },
 	});
 
-	if (!record || record.userId !== user!.id) {
+	if (!record || record.userId !== user!.id || record.status === "COMPLETED") {
 		return NextResponse.json({ error: "not found" }, { status: 404 });
 	}
 
@@ -35,10 +35,10 @@ export const POST = createRoute({
 
 	const record = await prisma.runRecord.findUnique({
 		where: { id: runId },
-		select: { userId: true },
+		select: { userId: true, status: true },
 	});
 
-	if (!record || record.userId !== user!.id) {
+	if (!record || record.userId !== user!.id || record.status !== "ACTIVE") {
 		return NextResponse.json({ error: "not found" }, { status: 404 });
 	}
 
@@ -52,7 +52,8 @@ export const POST = createRoute({
 	}
 
 	try {
-		await pushPoints(runId, body.points);
+		const result = await pushPoints(runId, body.points);
+		return NextResponse.json({ ok: true, ...result });
 	} catch (e) {
 		// 关键数据写入：GPS 轨迹点不能静默丢失，必须让调用端感知失败
 		logError(e instanceof Error ? e : new Error(String(e)), {
@@ -62,6 +63,4 @@ export const POST = createRoute({
 		});
 		return NextResponse.json({ error: "GPS 数据暂存失败" }, { status: 503 });
 	}
-
-	return NextResponse.json({ ok: true });
 });

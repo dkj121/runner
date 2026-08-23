@@ -3,10 +3,11 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { loadAMapSDK, type AMapSDK } from "@/lib/amap-sdk";
 import { wgs84ToGcj02, wgs84ToGcj02Point } from "@/lib/coord-transform";
+import { groupTrackSegments } from "@/lib/run-timeline";
 
 interface RunMapProps {
 	center?: [number, number];
-	track?: { lat: number; lng: number }[];
+	track?: { lat: number; lng: number; segmentIndex?: number }[];
 	finished?: boolean;
 }
 
@@ -18,8 +19,8 @@ export default function RunMap({
 	const containerRef = useRef<HTMLDivElement>(null!);
 	const mapRef = useRef<AMap.Map | null>(null);
 	const sdkRef = useRef<AMapSDK | null>(null);
-	const polylineRef = useRef<AMap.Polyline | null>(null);
-	const glowRef = useRef<AMap.Polyline | null>(null);
+	const polylineRefs = useRef<AMap.Polyline[]>([]);
+	const glowRefs = useRef<AMap.Polyline[]>([]);
 	const markerRef = useRef<AMap.Marker | null>(null);
 	const startMarkerRef = useRef<AMap.Marker | null>(null);
 	const endMarkerRef = useRef<AMap.Marker | null>(null);
@@ -28,10 +29,14 @@ export default function RunMap({
 
 	// AMap renders in GCJ-02 while GPS/storage stays WGS-84 — convert once per
 	// track change instead of on every render.
-	const gcjTrack = useMemo(
-		() => (track ?? []).map((p) => wgs84ToGcj02Point(p)),
+	const gcjSegments = useMemo(
+		() =>
+			groupTrackSegments(track ?? []).map((segment) =>
+				segment.map((point) => wgs84ToGcj02Point(point)),
+			),
 		[track],
 	);
+	const gcjTrack = useMemo(() => gcjSegments.flat(), [gcjSegments]);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -77,7 +82,7 @@ export default function RunMap({
 					strokeStyle: "solid",
 				});
 				map.add(glow);
-				glowRef.current = glow;
+				glowRefs.current = [glow];
 
 				const polyline = new AMap.Polyline({
 					path: [
@@ -89,7 +94,7 @@ export default function RunMap({
 					strokeStyle: "solid",
 				});
 				map.add(polyline);
-				polylineRef.current = polyline;
+				polylineRefs.current = [polyline];
 
 				const marker = new AMap.Marker({
 					position: [lng, lat],
@@ -120,16 +125,39 @@ export default function RunMap({
 
 	useEffect(() => {
 		if (gcjTrack.length === 0) return;
+		const AMap = sdkRef.current;
+		const map = mapRef.current;
+		if (!AMap || !map) return;
 		const latest = gcjTrack[gcjTrack.length - 1];
 		const pos = [latest.lng, latest.lat] as [number, number];
 		markerRef.current?.setPosition(pos);
-		if (gcjTrack.length >= 2) {
-			const path = gcjTrack.map((p) => [p.lng, p.lat] as [number, number]);
-			polylineRef.current?.setPath(path);
-			glowRef.current?.setPath(path);
+		for (const [index, segment] of gcjSegments.entries()) {
+			if (segment.length < 2) continue;
+			const path = segment.map((p) => [p.lng, p.lat] as [number, number]);
+			if (!polylineRefs.current[index]) {
+				const glow = new AMap.Polyline({
+					path,
+					strokeColor: "#22c55e",
+					strokeWeight: 10,
+					strokeOpacity: 0.25,
+					strokeStyle: "solid",
+				});
+				const polyline = new AMap.Polyline({
+					path,
+					strokeColor: "#22c55e",
+					strokeWeight: 6,
+					strokeStyle: "solid",
+				});
+				map.add([glow, polyline]);
+				glowRefs.current[index] = glow;
+				polylineRefs.current[index] = polyline;
+			} else {
+				polylineRefs.current[index].setPath(path);
+				glowRefs.current[index]?.setPath(path);
+			}
 		}
 		mapRef.current?.setCenter(pos);
-	}, [gcjTrack]);
+	}, [gcjSegments, gcjTrack]);
 
 	useEffect(() => {
 		const AMap = sdkRef.current;

@@ -4,18 +4,47 @@ import { createRunSession } from "@/lib/gps-cache";
 import { logError } from "@/lib/logger";
 import { createRoute } from "@/lib/create-route";
 
+function isUniqueConstraintError(error: unknown): boolean {
+	return (
+		typeof error === "object" &&
+		error !== null &&
+		"code" in error &&
+		error.code === "P2002"
+	);
+}
+
 export const POST = createRoute({
 	method: "POST",
 	path: "/api/runs",
 	auth: true,
 	operation: "createRun",
 })(async ({ user }) => {
-	const record = await prisma.runRecord.create({
-		data: { userId: user!.id, startTime: new Date() },
-	});
+	let record: { id: string };
+	const startTime = new Date();
+	try {
+		record = await prisma.runRecord.create({
+			data: {
+				userId: user!.id,
+				startTime,
+				status: "ACTIVE",
+				activeSessionOwnerId: user!.id,
+			},
+		});
+	} catch (error) {
+		if (isUniqueConstraintError(error)) {
+			return NextResponse.json(
+				{
+					error: "An active run session already exists",
+					code: "RUN_SESSION_CONFLICT",
+				},
+				{ status: 409 },
+			);
+		}
+		throw error;
+	}
 
 	try {
-		await createRunSession(record.id, user!.id);
+		await createRunSession(record.id, user!.id, startTime.getTime());
 	} catch (e) {
 		// 会话启动失败：跑步记录已落库，此时降级为无 Redis 实时会话，记日志而非失败整个请求
 		logError(e instanceof Error ? e : new Error(String(e)), {
@@ -40,12 +69,14 @@ export const GET = createRoute({
 
 	const [records, total] = await Promise.all([
 		prisma.runRecord.findMany({
-			where: { userId: user!.id },
+			where: { userId: user!.id, status: "COMPLETED" },
 			orderBy: { startTime: "desc" },
 			take,
 			skip,
 		}),
-		prisma.runRecord.count({ where: { userId: user!.id } }),
+		prisma.runRecord.count({
+			where: { userId: user!.id, status: "COMPLETED" },
+		}),
 	]);
 
 	return NextResponse.json({ records, total });

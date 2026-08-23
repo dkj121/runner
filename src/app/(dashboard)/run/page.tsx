@@ -43,6 +43,16 @@ export default function RunPage() {
 		}, 400);
 	};
 
+	const handleRetryCompletion = async () => {
+		const result = await tracker.retryCompletion();
+		if (result) router.push(`/summary?runId=${result.runId}`);
+	};
+
+	const handleAbandon = async () => {
+		if (!window.confirm("确认放弃这次未保存的跑步吗？此操作无法撤销。")) return;
+		await tracker.abandon();
+	};
+
 	if (tracker.status === "idle") {
 		return (
 			<div className="flex h-full flex-col items-center justify-center gap-6 px-5">
@@ -69,10 +79,16 @@ export default function RunPage() {
 				<button
 					type="button"
 					onClick={() => tracker.start()}
-					className="flex h-22 w-22 items-center justify-center rounded-full bg-gradient-to-b from-primary to-orange-600 text-lg font-bold text-white shadow-[0_4px_32px_hsl(22_100%_56%/0.375)]"
+					disabled={tracker.isStarting}
+					className="flex h-22 w-22 items-center justify-center rounded-full bg-gradient-to-b from-primary to-orange-600 text-lg font-bold text-white shadow-[0_4px_32px_hsl(22_100%_56%/0.375)] disabled:cursor-wait disabled:opacity-60"
 				>
-					开始
+					{tracker.isStarting ? "启动中" : "开始"}
 				</button>
+				{tracker.startError && (
+					<p role="alert" className="text-center text-sm text-destructive">
+						{tracker.startError}
+					</p>
+				)}
 			</div>
 		);
 	}
@@ -85,6 +101,41 @@ export default function RunPage() {
 				</div>
 				<p className="text-lg font-semibold text-foreground">跑步已完成</p>
 				<p className="text-sm text-muted-foreground">正在生成汇总...</p>
+			</div>
+		);
+	}
+
+	if (tracker.status === "pending_completion") {
+		return (
+			<div className="flex h-full flex-col items-center justify-center gap-5 px-6 text-center">
+				<Square className="size-12 text-primary" />
+				<div>
+					<h1 className="text-xl font-semibold text-foreground">跑步待完成</h1>
+					<p className="mt-2 text-sm text-muted-foreground">
+						轨迹已冻结，不会继续记录移动。
+					</p>
+				</div>
+				{tracker.completionError && (
+					<p role="alert" className="text-sm text-destructive">
+						{tracker.completionError}
+					</p>
+				)}
+				<div className="flex gap-3">
+					<button
+						type="button"
+						onClick={handleRetryCompletion}
+						className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white"
+					>
+						重试保存
+					</button>
+					<button
+						type="button"
+						onClick={handleAbandon}
+						className="rounded-lg border border-destructive/50 px-5 py-2.5 text-sm text-destructive"
+					>
+						放弃
+					</button>
+				</div>
 			</div>
 		);
 	}
