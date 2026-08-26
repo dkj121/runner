@@ -11,8 +11,16 @@ export interface ConfirmedRunResult {
 	paceSecondsPerKm: number | null;
 	calories: number;
 	trackSegments: SequencedTrackPoint[][];
-	splits: { km: number; durationSeconds: number; paceSecondsPerKm: number }[];
+	splits: {
+		km: number;
+		distanceMeters: number;
+		durationSeconds: number;
+		paceSecondsPerKm: number;
+		isPartial: boolean;
+	}[];
 }
+
+const MIN_PARTIAL_SPLIT_METERS = 100;
 
 export function calculateConfirmedRunResult(
 	points: SequencedTrackPoint[],
@@ -22,29 +30,64 @@ export function calculateConfirmedRunResult(
 	let distanceMeters = 0;
 	let movementSeconds = 0;
 	let nextSplitMeters = 1_000;
-	let previousSplitSeconds = 0;
+	let splitStartSeconds = 0;
+	let splitStartMeters = 0;
 	const splits: ConfirmedRunResult["splits"] = [];
 
 	for (const segment of trackSegments) {
 		for (let index = 1; index < segment.length; index++) {
 			const previous = segment[index - 1];
 			const current = segment[index];
-			distanceMeters += segmentDistance(previous, current);
-			movementSeconds += (current.timestamp - previous.timestamp) / 1000;
-			while (distanceMeters >= nextSplitMeters) {
+			const segmentMeters = segmentDistance(previous, current);
+			const segmentSeconds = Math.max(
+				0,
+				(current.timestamp - previous.timestamp) / 1_000,
+			);
+			const segmentStartMeters = distanceMeters;
+			const segmentStartSeconds = movementSeconds;
+			while (
+				segmentMeters > 0 &&
+				segmentStartMeters + segmentMeters >= nextSplitMeters
+			) {
+				const boundaryProgress =
+					(nextSplitMeters - segmentStartMeters) / segmentMeters;
+				const boundarySeconds =
+					segmentStartSeconds + segmentSeconds * boundaryProgress;
 				const splitDuration = Math.max(
 					1,
-					Math.round(movementSeconds - previousSplitSeconds),
+					Math.round(boundarySeconds - splitStartSeconds),
 				);
 				splits.push({
 					km: nextSplitMeters / 1_000,
+					distanceMeters: 1_000,
 					durationSeconds: splitDuration,
 					paceSecondsPerKm: splitDuration,
+					isPartial: false,
 				});
-				previousSplitSeconds = movementSeconds;
+				splitStartSeconds = boundarySeconds;
+				splitStartMeters = nextSplitMeters;
 				nextSplitMeters += 1_000;
 			}
+			distanceMeters += segmentMeters;
+			movementSeconds += segmentSeconds;
 		}
+	}
+
+	const partialDistanceMeters = distanceMeters - splitStartMeters;
+	if (partialDistanceMeters >= MIN_PARTIAL_SPLIT_METERS) {
+		const partialDurationSeconds = Math.max(
+			1,
+			Math.round(movementSeconds - splitStartSeconds),
+		);
+		splits.push({
+			km: Math.floor(splitStartMeters / 1_000) + 1,
+			distanceMeters: Math.round(partialDistanceMeters * 100) / 100,
+			durationSeconds: partialDurationSeconds,
+			paceSecondsPerKm: Math.round(
+				partialDurationSeconds / (partialDistanceMeters / 1_000),
+			),
+			isPartial: true,
+		});
 	}
 
 	const durationSeconds = calculateActiveDuration(events);

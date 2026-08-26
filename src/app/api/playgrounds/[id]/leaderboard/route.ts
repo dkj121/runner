@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createRoute } from "@/lib/create-route";
+import { COMPLETED_RUN_FILTER } from "@/lib/run-query";
 
 /**
  * GET /api/playgrounds/[id]/leaderboard
@@ -52,10 +53,15 @@ export const GET = createRoute({
 		where: { playGroundId: id },
 		include: {
 			runRecords: {
-				include: {
+				where: COMPLETED_RUN_FILTER,
+				select: {
+					userId: true,
+					distanceMeters: true,
+					durationSeconds: true,
+					paceSecondsPerKm: true,
 					user: { select: { id: true, name: true, image: true } },
 				},
-				orderBy: { distance: "desc" },
+				orderBy: { distanceMeters: "desc" },
 			},
 		},
 	});
@@ -73,40 +79,49 @@ export const GET = createRoute({
 			userId: string;
 			name: string;
 			image: string | null;
-			totalDistance: number;
-			totalTime: number;
+			totalDistanceMeters: number;
+			totalDurationSeconds: number;
 			runCount: number;
-			bestPace: string;
+			bestPaceSecondsPerKm: number | null;
 		}
 	>();
 
 	for (const record of rankingList.runRecords) {
 		const existing = userMap.get(record.userId);
 		if (existing) {
-			existing.totalDistance += record.distance;
-			existing.totalTime += record.duration;
+			existing.totalDistanceMeters += record.distanceMeters;
+			existing.totalDurationSeconds += record.durationSeconds;
 			existing.runCount += 1;
-			// Keep the best pace (lower is better)
-			if (record.avgPace < existing.bestPace) {
-				existing.bestPace = record.avgPace;
+			if (
+				record.paceSecondsPerKm !== null &&
+				(existing.bestPaceSecondsPerKm === null ||
+					record.paceSecondsPerKm < existing.bestPaceSecondsPerKm)
+			) {
+				existing.bestPaceSecondsPerKm = record.paceSecondsPerKm;
 			}
 		} else {
 			userMap.set(record.userId, {
 				userId: record.userId,
 				name: record.user.name,
 				image: record.user.image,
-				totalDistance: record.distance,
-				totalTime: record.duration,
+				totalDistanceMeters: record.distanceMeters,
+				totalDurationSeconds: record.durationSeconds,
 				runCount: 1,
-				bestPace: record.avgPace,
+				bestPaceSecondsPerKm: record.paceSecondsPerKm,
 			});
 		}
 	}
 
 	const leaderboard = Array.from(userMap.values())
-		.sort((a, b) => b.totalDistance - a.totalDistance)
+		.sort((a, b) => b.totalDistanceMeters - a.totalDistanceMeters)
 		.map((user, index) => ({
-			...user,
+			userId: user.userId,
+			name: user.name,
+			image: user.image,
+			totalDistanceMeters: user.totalDistanceMeters,
+			totalDurationSeconds: user.totalDurationSeconds,
+			runCount: user.runCount,
+			bestPaceSecondsPerKm: user.bestPaceSecondsPerKm,
 			rank: index + 1,
 		}));
 

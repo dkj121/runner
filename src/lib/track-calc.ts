@@ -47,8 +47,12 @@ export function formatDuration(s: number): string {
 
 export function calcPace(distanceKm: number, durationSec: number): string {
 	if (distanceKm <= 0) return "--";
-	const secPerKm = Math.round(durationSec / distanceKm);
-	const m = Math.floor(secPerKm / 60);
-	const s = secPerKm % 60;
-	return `${m}:${String(s).padStart(2, "0")} /km`;
+	return formatPaceSeconds(Math.round(durationSec / distanceKm));
+}
+
+export function formatPaceSeconds(paceSecondsPerKm: number | null): string {
+	if (paceSecondsPerKm === null || paceSecondsPerKm <= 0) return "--";
+	const minutes = Math.floor(paceSecondsPerKm / 60);
+	const seconds = paceSecondsPerKm % 60;
+	return `${minutes}'${String(seconds).padStart(2, "0")}"`;
 }

@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { clearRunSession, getAllPoints, getRunEvents } from "@/lib/gps-cache";
-import { calcDistance, calcPace } from "@/lib/track-calc";
-import { canonicalizeLegacyRunMeasurements } from "@/lib/run-contract";
+import { calcDistance } from "@/lib/track-calc";
 import {
 	calculateActiveDuration,
 	groupTrackSegments,
 } from "@/lib/run-timeline";
-import { logError } from "@/lib/logger";
 import { createRoute } from "@/lib/create-route";
+import { enforceRunLifecycle } from "@/lib/run-lifecycle";
+import { COMPLETED_RUN_FILTER } from "@/lib/run-query";
 
 function calcLiveDistance(
 	points: { lat: number; lng: number; segmentIndex?: number }[],
@@ -17,7 +17,7 @@ function calcLiveDistance(
 		(total, segment) => total + calcDistance(segment),
 		0,
 	);
-	return parseFloat(distance.toFixed(2));
+	return Math.round(distance * 100_000) / 100;
 }
 
 export const GET = createRoute({
@@ -27,21 +27,20 @@ export const GET = createRoute({
 	operation: "getRun",
 })(async ({ params, user }) => {
 	const { runId } = params;
+	await enforceRunLifecycle(runId, user!.id);
 
 	const record = await prisma.runRecord.findUnique({
 		where: { id: runId },
 		select: {
+			id: true,
 			userId: true,
 			startTime: true,
 			endTime: true,
 			status: true,
-			duration: true,
 			durationSeconds: true,
-			distance: true,
 			distanceMeters: true,
 			previewDistanceMeters: true,
 			paceSecondsPerKm: true,
-			avgPace: true,
 			trackPoints: true,
 			calories: true,
 			splits: true,
@@ -77,93 +76,22 @@ export const GET = createRoute({
 						)
 					: Math.floor((now - new Date(record.startTime).getTime()) / 1000);
 
-		const distance = calcLiveDistance(points);
-		const avgPace = duration > 0 ? calcPace(distance, duration) : "--";
-		const canonical = canonicalizeLegacyRunMeasurements({ duration, distance });
+		const distanceMeters = calcLiveDistance(points);
+		const paceSecondsPerKm =
+			duration > 0 && distanceMeters > 0
+				? Math.round(duration / (distanceMeters / 1_000))
+				: null;
 
 		return NextResponse.json({
 			...record,
-			duration,
-			distance,
-			avgPace,
-			...canonical,
+			durationSeconds: duration,
+			distanceMeters,
+			paceSecondsPerKm,
 			points,
 		});
 	}
 
 	return NextResponse.json(record);
-});
-
-export const PATCH = createRoute({
-	method: "PATCH",
-	path: "/api/runs/[runId]",
-	auth: true,
-	operation: "updateRun",
-})(async ({ request, params, user }) => {
-	const { runId } = params;
-
-	// Verify ownership
-	const existing = await prisma.runRecord.findUnique({
-		where: { id: runId },
-		select: { userId: true },
-	});
-
-	if (!existing || existing.userId !== user!.id) {
-		return NextResponse.json({ error: "not found" }, { status: 404 });
-	}
-
-	const {
-		endTime,
-		duration,
-		distance,
-		avgPace,
-		trackPoints,
-		calories,
-		splits,
-		notes,
-	} = await request.json();
-
-	if (!endTime) {
-		return NextResponse.json({ error: "endTime required" }, { status: 400 });
-	}
-	const events = await getRunEvents(runId);
-	const activeDuration =
-		events.length > 0 ? calculateActiveDuration(events) : duration;
-	const canonical = canonicalizeLegacyRunMeasurements({
-		duration: activeDuration,
-		distance,
-	});
-
-	await prisma.runRecord.update({
-		where: { id: runId },
-		data: {
-			endTime: new Date(endTime),
-			status: "COMPLETED",
-			activeSessionOwnerId: null,
-			duration: activeDuration,
-			durationSeconds: canonical.durationSeconds,
-			distance,
-			distanceMeters: canonical.distanceMeters,
-			avgPace,
-			...(trackPoints !== undefined && { trackPoints }),
-			...(calories !== undefined && { calories }),
-			...(splits !== undefined && { splits }),
-			...(notes !== undefined && { notes }),
-		},
-	});
-
-	try {
-		await clearRunSession(runId, user!.id);
-	} catch (e) {
-		// 清理类操作：跑步记录已落库，Redis 会话清理失败仅影响临时缓存，记日志而非失败整个请求
-		logError(e instanceof Error ? e : new Error(String(e)), {
-			userId: user!.id,
-			runRecordId: runId,
-			operation: "clearRunSession",
-		});
-	}
-
-	return NextResponse.json({ ok: true });
 });
 
 export const DELETE = createRoute({
@@ -179,10 +107,37 @@ export const DELETE = createRoute({
 	if (!record || record.userId !== user!.id) {
 		return NextResponse.json({ error: "not found" }, { status: 404 });
 	}
-	if (record.status === "COMPLETED") {
-		return NextResponse.json({ error: "completed run" }, { status: 409 });
+	if (record.status !== "COMPLETED") {
+		await prisma.runRecord.delete({ where: { id: params.runId } });
+		await clearRunSession(params.runId, user!.id);
+		return NextResponse.json({ abandoned: true });
 	}
-	await prisma.runRecord.delete({ where: { id: params.runId } });
-	await clearRunSession(params.runId, user!.id);
-	return NextResponse.json({ abandoned: true });
+
+	await prisma.$transaction(async (transaction) => {
+		await transaction.runRecord.delete({ where: { id: params.runId } });
+		const remainingRuns = await transaction.runRecord.findMany({
+			where: { userId: user!.id, ...COMPLETED_RUN_FILTER },
+			select: { durationSeconds: true, distanceMeters: true },
+		});
+		const totals = remainingRuns.reduce(
+			(result, run) => ({
+				durationSeconds: result.durationSeconds + run.durationSeconds,
+				distanceMeters: result.distanceMeters + run.distanceMeters,
+			}),
+			{ durationSeconds: 0, distanceMeters: 0 },
+		);
+		const paceSecondsPerKm =
+			totals.distanceMeters > 0
+				? Math.round(totals.durationSeconds / (totals.distanceMeters / 1_000))
+				: null;
+		await transaction.totalRunRecord.updateMany({
+			where: { userId: user!.id },
+			data: {
+				totalDurationSeconds: totals.durationSeconds,
+				totalDistanceMeters: totals.distanceMeters,
+				averagePaceSecondsPerKm: paceSecondsPerKm,
+			},
+		});
+	});
+	return NextResponse.json({ deleted: true });
 });

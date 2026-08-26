@@ -23,7 +23,7 @@ describe("track calculations", () => {
 
 	it("formats duration and pace from worked examples", () => {
 		expect(formatDuration(3_661)).toBe("1:01:01");
-		expect(calcPace(5, 1_500)).toBe("5:00 /km");
+		expect(calcPace(5, 1_500)).toBe("5'00\"");
 		expect(calcPace(0, 1_500)).toBe("--");
 	});
 });

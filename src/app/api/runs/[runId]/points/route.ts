@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { pushPoints, getAllPoints } from "@/lib/gps-cache";
 import { logError } from "@/lib/logger";
 import { createRoute } from "@/lib/create-route";
+import { enforceRunLifecycle } from "@/lib/run-lifecycle";
 
 export const GET = createRoute({
 	method: "GET",
@@ -11,6 +12,7 @@ export const GET = createRoute({
 	operation: "getRunPoints",
 })(async ({ params, user }) => {
 	const { runId } = params;
+	await enforceRunLifecycle(runId, user!.id);
 
 	const record = await prisma.runRecord.findUnique({
 		where: { id: runId },
@@ -32,6 +34,7 @@ export const POST = createRoute({
 	operation: "pushRunPoints",
 })(async ({ request, params, user }) => {
 	const { runId } = params;
+	await enforceRunLifecycle(runId, user!.id);
 
 	const record = await prisma.runRecord.findUnique({
 		where: { id: runId },

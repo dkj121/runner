@@ -5,14 +5,14 @@ enum RunStatus {
 }
 
 model TotalRunRecord {
-  id            String   @id @default(cuid())
-  user          User     @relation(fields: [userId], references: [id], map: "total_run_record_user_id_fkey")
-  userId        String
-  totalTime     Int      @default(0)
-  totalDistance Float    @default(0)
-  avgPace       String   @default("")
-  createdAt     DateTime @default(now()) @db.Timestamp(3)
-  updatedAt     DateTime @updatedAt @db.Timestamp(3)
+  id                      String   @id @default(cuid())
+  user                    User     @relation(fields: [userId], references: [id], map: "total_run_record_user_id_fkey")
+  userId                  String
+  totalDurationSeconds    Int      @default(0) @map("total_duration_seconds")
+  totalDistanceMeters     Float    @default(0) @map("total_distance_meters")
+  averagePaceSecondsPerKm Int?     @map("average_pace_seconds_per_km")
+  createdAt               DateTime @default(now()) @db.Timestamp(3)
+  updatedAt               DateTime @updatedAt @db.Timestamp(3)
 
   @@unique([userId], name: "unique_total_run_record_user_id")
   @@index([userId], map: "idx_total_run_record_user_id")
@@ -29,13 +29,10 @@ model RunRecord {
   endTime                 DateTime?
   status                  RunStatus              @default(ACTIVE)
   activeSessionOwnerId    String?                @unique(map: "unique_active_run_session_owner") @map("active_session_owner_id")
-  duration                Int                    @default(0)
   durationSeconds         Int                    @default(0) @map("duration_seconds")
-  distance                Float                  @default(0)
   distanceMeters          Float                  @default(0) @map("distance_meters")
   previewDistanceMeters   Float?                 @map("preview_distance_meters")
   paceSecondsPerKm        Int?                   @map("pace_seconds_per_km")
-  avgPace                 String                 @default("")
   trackPoints             Json?                  @map("track_points")
   calories                Int                    @default(0)
   splits                  Json?                  @map("splits")

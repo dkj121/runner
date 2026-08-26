@@ -63,9 +63,10 @@ const baseLoggerOptions: LoggerOptions = {
 			return {
 				id: r.id,
 				userId: r.userId,
-				distance: r.distance,
-				duration: r.duration,
-				avgPace: r.avgPace,
+				distanceMeters: r.distanceMeters,
+				durationSeconds: r.durationSeconds,
+				paceSecondsPerKm: r.paceSecondsPerKm,
+				status: r.status,
 			};
 		},
 	},
@@ -80,8 +81,9 @@ const baseLoggerOptions: LoggerOptions = {
 	// Timestamp formatting
 	timestamp: () => `,"time":"${new Date().toISOString()}"`,
 
-	// Format for human-readable output in development
-	...(isDevelopment && {
+	// Keep Next.js development logging in-process; pino-pretty's worker path
+	// is not resolvable from the Turbopack runtime on Windows.
+	...(isDevelopment && process.env.PINO_PRETTY === "true" && {
 		transport: {
 			target: "pino-pretty",
 			options: {

@@ -6,11 +6,7 @@ import {
 } from "@/lib/confirmed-run";
 import { clearRunSession, getAllPoints, getRunEvents } from "@/lib/gps-cache";
 import { prisma } from "@/lib/prisma";
-
-function formatPace(paceSecondsPerKm: number | null): string {
-	if (paceSecondsPerKm === null) return "--";
-	return `${Math.floor(paceSecondsPerKm / 60)}:${String(paceSecondsPerKm % 60).padStart(2, "0")} /km`;
-}
+import { Prisma } from "../../../../../../generated/prisma/client";
 
 function confirmedResponse(record: {
 	id: string;
@@ -104,7 +100,9 @@ export const POST = createRoute({
 		return NextResponse.json({ error: "stop event required" }, { status: 409 });
 	}
 	const confirmed = calculateConfirmedRunResult(points, events);
-	const avgPace = formatPace(confirmed.paceSecondsPerKm);
+	const contributesToDistance = confirmed.trackSegments.some(
+		(segment) => segment.length >= 2,
+	);
 	const completed = await prisma.$transaction(async (transaction) => {
 		const transition = await transaction.runRecord.updateMany({
 			where: { id: params.runId, status: "PENDING_COMPLETION" },
@@ -112,35 +110,55 @@ export const POST = createRoute({
 				status: "COMPLETED",
 				activeSessionOwnerId: null,
 				endTime: stopTime,
-				duration: confirmed.durationSeconds,
 				durationSeconds: confirmed.durationSeconds,
-				distance: confirmed.distanceMeters / 1_000,
 				distanceMeters: confirmed.distanceMeters,
 				previewDistanceMeters,
 				paceSecondsPerKm: confirmed.paceSecondsPerKm,
-				avgPace,
-				trackPoints: JSON.parse(
-					JSON.stringify({ segments: confirmed.trackSegments }),
-				),
-				calories: confirmed.calories,
-				splits: confirmed.splits,
+				trackPoints: contributesToDistance
+					? JSON.parse(JSON.stringify({ segments: confirmed.trackSegments }))
+					: null,
+				calories: contributesToDistance ? confirmed.calories : 0,
+				splits: contributesToDistance ? confirmed.splits : Prisma.DbNull,
 			},
 		});
 		if (transition.count === 0) return null;
-		await transaction.totalRunRecord.upsert({
+		const lifetime = await transaction.totalRunRecord.findFirst({
 			where: { userId: user!.id },
-			create: {
-				userId: user!.id,
-				totalTime: confirmed.durationSeconds,
-				totalDistance: confirmed.distanceMeters / 1_000,
-				avgPace,
-			},
-			update: {
-				totalTime: { increment: confirmed.durationSeconds },
-				totalDistance: { increment: confirmed.distanceMeters / 1_000 },
-				avgPace,
+			select: {
+				id: true,
+				totalDurationSeconds: true,
+				totalDistanceMeters: true,
 			},
 		});
+		const totalDurationSeconds =
+			(lifetime?.totalDurationSeconds ?? 0) +
+			(contributesToDistance ? confirmed.durationSeconds : 0);
+		const totalDistanceMeters =
+			(lifetime?.totalDistanceMeters ?? 0) +
+			(contributesToDistance ? confirmed.distanceMeters : 0);
+		const averagePaceSecondsPerKm =
+			totalDistanceMeters > 0
+				? Math.round(totalDurationSeconds / (totalDistanceMeters / 1_000))
+				: null;
+		if (lifetime) {
+			await transaction.totalRunRecord.update({
+				where: { id: lifetime.id },
+				data: {
+					totalDurationSeconds,
+					totalDistanceMeters,
+					averagePaceSecondsPerKm,
+				},
+			});
+		} else {
+			await transaction.totalRunRecord.create({
+				data: {
+					userId: user!.id,
+					totalDurationSeconds,
+					totalDistanceMeters,
+					averagePaceSecondsPerKm,
+				},
+			});
+		}
 		return transaction.runRecord.findUnique({ where: { id: params.runId } });
 	});
 

@@ -11,32 +11,17 @@ export interface RunEvent extends SequencedRunItem {
 	type: RunEventType;
 }
 
-export interface SequencedTrackPoint extends SequencedRunItem {
-	segmentIndex: number;
+export interface TrackObservation {
 	lat: number;
 	lng: number;
 	accuracy: number;
 	altitude: number | null;
+	timestamp: number;
+}
+
+export interface SequencedTrackPoint
+	extends SequencedRunItem, TrackObservation {
+	segmentIndex: number;
 }
 
 export type RunTimelineItem = RunEvent | SequencedTrackPoint;
-
-export interface LegacyRunMeasurements {
-	duration: number;
-	distance: number;
-}
-
-export interface CanonicalRunMeasurements {
-	durationSeconds: number;
-	distanceMeters: number;
-}
-
-export function canonicalizeLegacyRunMeasurements({
-	duration,
-	distance,
-}: LegacyRunMeasurements): CanonicalRunMeasurements {
-	return {
-		durationSeconds: duration,
-		distanceMeters: Math.round(distance * 1000),
-	};
-}

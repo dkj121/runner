@@ -17,7 +17,7 @@ const completedRecord = {
 };
 const transactionMock = vi.hoisted(() => ({
 	runRecord: { updateMany: vi.fn(), findUnique: vi.fn() },
-	totalRunRecord: { upsert: vi.fn() },
+	totalRunRecord: { findFirst: vi.fn(), update: vi.fn(), create: vi.fn() },
 }));
 const prismaMock = vi.hoisted(() => ({
 	$transaction: vi.fn(),
@@ -70,7 +70,12 @@ describe("complete Run API", () => {
 		);
 		transactionMock.runRecord.updateMany.mockResolvedValue({ count: 1 });
 		transactionMock.runRecord.findUnique.mockResolvedValue(completedRecord);
-		transactionMock.totalRunRecord.upsert.mockResolvedValue({});
+		transactionMock.totalRunRecord.findFirst.mockResolvedValue({
+			id: "total-1",
+			totalDurationSeconds: 590,
+			totalDistanceMeters: 988.88,
+		});
+		transactionMock.totalRunRecord.update.mockResolvedValue({});
 		gpsCacheMock.getAllPoints.mockResolvedValue([
 			{
 				sequence: 1,
@@ -110,7 +115,45 @@ describe("complete Run API", () => {
 				}),
 			}),
 		);
-		expect(transactionMock.totalRunRecord.upsert).toHaveBeenCalledTimes(1);
+		expect(transactionMock.totalRunRecord.update).toHaveBeenCalledWith({
+			where: { id: "total-1" },
+			data: {
+				totalDurationSeconds: 600,
+				totalDistanceMeters: 1_000,
+				averagePaceSecondsPerKm: 600,
+			},
+		});
+	});
+
+	it("does not contribute a duration-only run to distance aggregates", async () => {
+		gpsCacheMock.getAllPoints.mockResolvedValue([]);
+		gpsCacheMock.getRunEvents.mockResolvedValue([
+			{ type: "START", sequence: 0, timestamp: 1_000 },
+			{ type: "STOP", sequence: 1, timestamp: 11_000 },
+		]);
+
+		const response = await POST(request(), {
+			params: Promise.resolve({ runId: "run-1" }),
+		});
+
+		expect(response.status).toBe(200);
+		expect(transactionMock.runRecord.updateMany).toHaveBeenCalledWith(
+			expect.objectContaining({
+				data: expect.objectContaining({
+					distanceMeters: 0,
+					trackPoints: null,
+					calories: 0,
+				}),
+			}),
+		);
+		expect(transactionMock.totalRunRecord.update).toHaveBeenCalledWith(
+			expect.objectContaining({
+				data: expect.objectContaining({
+					totalDurationSeconds: 590,
+					totalDistanceMeters: 988.88,
+				}),
+			}),
+		);
 	});
 
 	it("returns the existing result for an identical retry without duplicate effects", async () => {
@@ -137,5 +180,16 @@ describe("complete Run API", () => {
 			params: Promise.resolve({ runId: "run-1" }),
 		});
 		expect(response.status).toBe(409);
+	});
+
+	it("does not clear active data when the aggregate transaction fails", async () => {
+		transactionMock.totalRunRecord.update.mockRejectedValue(
+			new Error("rollback"),
+		);
+		const response = await POST(request(), {
+			params: Promise.resolve({ runId: "run-1" }),
+		});
+		expect(response.status).toBe(500);
+		expect(gpsCacheMock.clearRunSession).not.toHaveBeenCalled();
 	});
 });

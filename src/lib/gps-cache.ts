@@ -5,7 +5,8 @@ import type { RunEvent } from "@/lib/run-contract";
 import { validateTrackPoints } from "@/lib/track-point-validation";
 import { validateRunEvents } from "@/lib/run-timeline";
 
-const RUN_TTL = 7200;
+export const ACTIVE_RUN_SECONDS = 12 * 60 * 60;
+export const RUN_RETENTION_SECONDS = 24 * 60 * 60;
 
 function metaKey(runId: string) {
 	return `run:${runId}:meta`;
@@ -24,6 +25,18 @@ function eventDataKey(runId: string) {
 }
 function activeKey(userId: string) {
 	return `run:active:${userId}`;
+}
+
+async function remainingRetentionSeconds(runId: string) {
+	const redis = await getRedis();
+	const startTime = Number(await redis.hGet(metaKey(runId), "startTime"));
+	if (!Number.isFinite(startTime) || startTime <= 0) {
+		return RUN_RETENTION_SECONDS;
+	}
+	return Math.max(
+		1,
+		Math.ceil((startTime + RUN_RETENTION_SECONDS * 1_000 - Date.now()) / 1_000),
+	);
 }
 
 /**
@@ -48,18 +61,19 @@ export async function createRunSession(
 			startTime: startTimestamp,
 			status: "active",
 		})
-		.expire(metaKey(runId), RUN_TTL)
+		.expire(metaKey(runId), RUN_RETENTION_SECONDS)
 		.hSet(eventDataKey(runId), "0", JSON.stringify(startEvent))
 		.zAdd(eventOrderKey(runId), { score: 0, value: "0" })
-		.expire(eventDataKey(runId), RUN_TTL)
-		.expire(eventOrderKey(runId), RUN_TTL)
-		.set(activeKey(userId), runId, { EX: RUN_TTL })
+		.expire(eventDataKey(runId), RUN_RETENTION_SECONDS)
+		.expire(eventOrderKey(runId), RUN_RETENTION_SECONDS)
+		.set(activeKey(userId), runId, { EX: ACTIVE_RUN_SECONDS })
 		.exec();
 }
 
 export async function pushRunEvents(runId: string, events: unknown[]) {
 	if (events.length === 0) return { accepted: 0, rejected: 0 };
 	const redis = await getRedis();
+	const retentionSeconds = await remainingRetentionSeconds(runId);
 	const existing = await getRunEvents(runId);
 	const points = await getAllPoints(runId);
 	const minimumSequenceExclusive = Math.max(
@@ -79,8 +93,8 @@ export async function pushRunEvents(runId: string, events: unknown[]) {
 	}
 
 	await Promise.all([
-		redis.expire(eventOrderKey(runId), RUN_TTL),
-		redis.expire(eventDataKey(runId), RUN_TTL),
+		redis.expire(eventOrderKey(runId), retentionSeconds),
+		redis.expire(eventDataKey(runId), retentionSeconds),
 	]);
 	return { accepted: result.accepted.length, rejected: result.rejected };
 }
@@ -98,12 +112,18 @@ export async function getRunEvents(runId: string): Promise<RunEvent[]> {
 export async function pushPoints(runId: string, points: unknown[]) {
 	if (points.length === 0) return { accepted: 0, rejected: 0 };
 	const redis = await getRedis();
+	const retentionSeconds = await remainingRetentionSeconds(runId);
 	const existing = await getAllPoints(runId);
 	const events = await getRunEvents(runId);
 	const latestEventSequence = events.at(-1)?.sequence ?? -1;
-	const maxSegmentIndex = events.filter(
-		(event) => event.type === "RESUME",
-	).length;
+	const existingSegmentIndex = Math.max(
+		-1,
+		...existing.map((point) => point.segmentIndex),
+	);
+	const maxSegmentIndex = Math.max(
+		existingSegmentIndex + 1,
+		events.filter((event) => event.type === "RESUME").length,
+	);
 	const result = validateTrackPoints(existing, points, {
 		minimumSequenceExclusive: latestEventSequence,
 		maxSegmentIndex,
@@ -120,8 +140,8 @@ export async function pushPoints(runId: string, points: unknown[]) {
 	}
 
 	await Promise.all([
-		redis.expire(pointsKey(runId), RUN_TTL),
-		redis.expire(pointDataKey(runId), RUN_TTL),
+		redis.expire(pointsKey(runId), retentionSeconds),
+		redis.expire(pointDataKey(runId), retentionSeconds),
 	]);
 	return { accepted: result.accepted.length, rejected: result.rejected };
 }
@@ -150,12 +170,15 @@ export async function getRunMeta(runId: string) {
 
 export async function clearRunSession(runId: string, userId: string) {
 	const redis = await getRedis();
-	await redis.del([
+	const keys = [
 		metaKey(runId),
-		activeKey(userId),
 		pointsKey(runId),
 		pointDataKey(runId),
 		eventOrderKey(runId),
 		eventDataKey(runId),
-	]);
+	];
+	if ((await redis.get(activeKey(userId))) === runId) {
+		keys.push(activeKey(userId));
+	}
+	await redis.del(keys);
 }

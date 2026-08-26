@@ -5,10 +5,32 @@ const publicRoutes = new Set(["/", "/login", "/register", "/forgot-password"]);
 
 export function middleware(request: NextRequest) {
 	const { pathname } = request.nextUrl;
+	const browserVerificationEnabled = request.nextUrl.hostname === "localhost";
+	const startsPersonalRunBrowserVerification =
+		browserVerificationEnabled &&
+		request.nextUrl.searchParams.get("personalRunBrowserTest") === "1";
+	const isPersonalRunBrowserVerification =
+		browserVerificationEnabled &&
+		request.cookies.get("personal-run-browser-test")?.value === "1";
 	const isPublic =
 		publicRoutes.has(pathname) || pathname.startsWith("/api/auth/");
 
-	if (isPublic || getSessionCookie(request)) {
+	if (startsPersonalRunBrowserVerification) {
+		const verificationUrl = request.nextUrl.clone();
+		verificationUrl.searchParams.delete("personalRunBrowserTest");
+		const response = NextResponse.redirect(verificationUrl);
+		response.cookies.set("personal-run-browser-test", "1", {
+			httpOnly: true,
+			sameSite: "strict",
+		});
+		return response;
+	}
+
+	if (
+		isPublic ||
+		isPersonalRunBrowserVerification ||
+		getSessionCookie(request)
+	) {
 		return NextResponse.next();
 	}
 

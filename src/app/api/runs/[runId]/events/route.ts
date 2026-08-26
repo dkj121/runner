@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { createRoute } from "@/lib/create-route";
 import { getRunEvents, pushRunEvents } from "@/lib/gps-cache";
 import { prisma } from "@/lib/prisma";
+import { enforceRunLifecycle } from "@/lib/run-lifecycle";
 
 async function findOwnedActiveRun(runId: string, userId: string) {
+	await enforceRunLifecycle(runId, userId);
 	const record = await prisma.runRecord.findUnique({
 		where: { id: runId },
 		select: { userId: true, status: true },

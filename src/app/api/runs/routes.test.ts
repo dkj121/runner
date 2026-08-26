@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { POST as createRun } from "@/app/api/runs/route";
+import { GET as listRuns, POST as createRun } from "@/app/api/runs/route";
 import {
+	DELETE as deleteRun,
 	GET as getRun,
-	PATCH as completeRun,
 } from "@/app/api/runs/[runId]/route";
 
 const authApi = vi.hoisted(() => ({
@@ -16,7 +16,11 @@ const prismaMock = vi.hoisted(() => ({
 		create: vi.fn(),
 		findMany: vi.fn(),
 		findUnique: vi.fn(),
+		delete: vi.fn(),
 		update: vi.fn(),
+	},
+	totalRunRecord: {
+		updateMany: vi.fn(),
 	},
 }));
 
@@ -25,6 +29,10 @@ const gpsCacheMock = vi.hoisted(() => ({
 	createRunSession: vi.fn(),
 	getAllPoints: vi.fn(),
 	getRunEvents: vi.fn(),
+}));
+const lifecycleMock = vi.hoisted(() => ({
+	enforceRunLifecycle: vi.fn(),
+	expireOwnedRunSessions: vi.fn(),
 }));
 
 vi.mock("next/headers", () => ({
@@ -40,6 +48,7 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 vi.mock("@/lib/gps-cache", () => gpsCacheMock);
+vi.mock("@/lib/run-lifecycle", () => lifecycleMock);
 
 vi.mock("@/lib/logger", () => ({
 	createRequestLogger: vi.fn(() => ({})),
@@ -155,7 +164,117 @@ describe("run API session creation", () => {
 	});
 });
 
-describe("run API canonical expansion", () => {
+describe("run history API", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		authApi.getSession.mockResolvedValue({ user: { id: "user-1" } });
+		prismaMock.runRecord.findMany.mockResolvedValue([{ id: "completed-1" }]);
+		prismaMock.runRecord.count.mockResolvedValue(1);
+	});
+
+	it("returns only the owner's Completed Runs", async () => {
+		const response = await listRuns(
+			new Request("http://localhost/api/runs?take=5"),
+			{ params: Promise.resolve({}) },
+		);
+		expect(await response.json()).toEqual({
+			records: [{ id: "completed-1" }],
+			total: 1,
+		});
+		expect(prismaMock.runRecord.findMany).toHaveBeenCalledWith(
+			expect.objectContaining({
+				where: expect.objectContaining({
+					userId: "user-1",
+					status: "COMPLETED",
+				}),
+			}),
+		);
+	});
+});
+
+describe("completed run deletion", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		authApi.getSession.mockResolvedValue({ user: { id: "user-1" } });
+		prismaMock.$transaction.mockImplementation(async (callback) =>
+			callback(prismaMock),
+		);
+		prismaMock.runRecord.delete.mockResolvedValue({ id: "run-1" });
+		prismaMock.totalRunRecord.updateMany.mockResolvedValue({ count: 1 });
+	});
+
+	it("does not delete another runner's completed run", async () => {
+		prismaMock.runRecord.findUnique.mockResolvedValue({
+			userId: "user-2",
+			status: "COMPLETED",
+		});
+
+		const response = await deleteRun(
+			new Request("http://localhost/api/runs/run-1", { method: "DELETE" }),
+			{ params: Promise.resolve({ runId: "run-1" }) },
+		);
+
+		expect(response.status).toBe(404);
+		expect(prismaMock.$transaction).not.toHaveBeenCalled();
+	});
+
+	it("deletes the run and rebuilds lifetime totals in one transaction", async () => {
+		prismaMock.runRecord.findUnique.mockResolvedValue({
+			userId: "user-1",
+			status: "COMPLETED",
+		});
+		prismaMock.runRecord.findMany.mockResolvedValue([
+			{ durationSeconds: 1_500, distanceMeters: 5_000 },
+			{ durationSeconds: 620, distanceMeters: 2_000 },
+		]);
+
+		const response = await deleteRun(
+			new Request("http://localhost/api/runs/run-1", { method: "DELETE" }),
+			{ params: Promise.resolve({ runId: "run-1" }) },
+		);
+
+		expect(response.status).toBe(200);
+		expect(await response.json()).toEqual({ deleted: true });
+		expect(prismaMock.runRecord.delete).toHaveBeenCalledWith({
+			where: { id: "run-1" },
+		});
+		expect(prismaMock.runRecord.findMany).toHaveBeenCalledWith({
+			where: expect.objectContaining({
+				userId: "user-1",
+				status: "COMPLETED",
+			}),
+			select: { durationSeconds: true, distanceMeters: true },
+		});
+		expect(prismaMock.totalRunRecord.updateMany).toHaveBeenCalledWith({
+			where: { userId: "user-1" },
+			data: {
+				totalDurationSeconds: 2_120,
+				totalDistanceMeters: 7_000,
+				averagePaceSecondsPerKm: 303,
+			},
+		});
+	});
+
+	it("returns an error when the deletion transaction rolls back", async () => {
+		prismaMock.runRecord.findUnique.mockResolvedValue({
+			userId: "user-1",
+			status: "COMPLETED",
+		});
+		prismaMock.$transaction.mockRejectedValue(
+			new Error("database unavailable"),
+		);
+
+		const response = await deleteRun(
+			new Request("http://localhost/api/runs/run-1", { method: "DELETE" }),
+			{ params: Promise.resolve({ runId: "run-1" }) },
+		);
+
+		expect(response.status).toBe(500);
+		expect(gpsCacheMock.clearRunSession).not.toHaveBeenCalled();
+	});
+});
+
+describe("run API canonical measurements", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		authApi.getSession.mockResolvedValue({ user: { id: "user-1" } });
@@ -166,52 +285,16 @@ describe("run API canonical expansion", () => {
 		gpsCacheMock.getRunEvents.mockResolvedValue([]);
 	});
 
-	it("accepts a legacy completion while persisting canonical measurements", async () => {
-		prismaMock.runRecord.findUnique.mockResolvedValue({ userId: "user-1" });
-		prismaMock.runRecord.update.mockResolvedValue({ id: "run-1" });
-
-		const response = await completeRun(
-			new Request("http://localhost/api/runs/run-1", {
-				method: "PATCH",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					endTime: "2026-08-23T10:00:00.000Z",
-					duration: 1_861,
-					distance: 5.23,
-					avgPace: "5:56 /km",
-				}),
-			}),
-			{ params: Promise.resolve({ runId: "run-1" }) },
-		);
-
-		expect(response.status).toBe(200);
-		expect(await response.json()).toEqual({ ok: true });
-		expect(prismaMock.runRecord.update).toHaveBeenCalledWith({
-			where: { id: "run-1" },
-			data: expect.objectContaining({
-				status: "COMPLETED",
-				activeSessionOwnerId: null,
-				duration: 1_861,
-				durationSeconds: 1_861,
-				distance: 5.23,
-				distanceMeters: 5_230,
-				avgPace: "5:56 /km",
-			}),
-		});
-	});
-
-	it("returns legacy and canonical live measurements together", async () => {
+	it("returns only canonical live measurements", async () => {
 		const now = Date.now();
 		prismaMock.runRecord.findUnique.mockResolvedValue({
 			userId: "user-1",
 			startTime: new Date(0),
 			endTime: null,
 			status: "ACTIVE",
-			duration: 0,
 			durationSeconds: 0,
-			distance: 0,
 			distanceMeters: 0,
-			avgPace: "",
+			paceSecondsPerKm: null,
 			trackPoints: null,
 			calories: 0,
 			splits: null,
@@ -238,41 +321,12 @@ describe("run API canonical expansion", () => {
 		expect(response.status).toBe(200);
 		expect(body).toMatchObject({
 			status: "ACTIVE",
-			duration: 5,
 			durationSeconds: 5,
-			distance: 0.01,
-			distanceMeters: 10,
+			distanceMeters: 11.12,
+			paceSecondsPerKm: 450,
 		});
-	});
-
-	it("persists event-defined active duration instead of paused wall time", async () => {
-		prismaMock.runRecord.findUnique.mockResolvedValue({ userId: "user-1" });
-		prismaMock.runRecord.update.mockResolvedValue({ id: "run-1" });
-		gpsCacheMock.getRunEvents.mockResolvedValue([
-			{ type: "START", sequence: 0, timestamp: 1_000 },
-			{ type: "PAUSE", sequence: 1, timestamp: 4_000 },
-			{ type: "RESUME", sequence: 2, timestamp: 10_000 },
-			{ type: "STOP", sequence: 3, timestamp: 12_000 },
-		]);
-
-		await completeRun(
-			new Request("http://localhost/api/runs/run-1", {
-				method: "PATCH",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					endTime: "2026-08-23T10:00:00.000Z",
-					duration: 11,
-					distance: 1,
-					avgPace: "5:00 /km",
-				}),
-			}),
-			{ params: Promise.resolve({ runId: "run-1" }) },
-		);
-
-		expect(prismaMock.runRecord.update).toHaveBeenCalledWith(
-			expect.objectContaining({
-				data: expect.objectContaining({ duration: 5, durationSeconds: 5 }),
-			}),
-		);
+		expect(body).not.toHaveProperty("duration");
+		expect(body).not.toHaveProperty("distance");
+		expect(body).not.toHaveProperty("avgPace");
 	});
 });

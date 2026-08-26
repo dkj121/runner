@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { createRunSession } from "@/lib/gps-cache";
 import { logError } from "@/lib/logger";
 import { createRoute } from "@/lib/create-route";
+import { COMPLETED_RUN_FILTER } from "@/lib/run-query";
+import { expireOwnedRunSessions } from "@/lib/run-lifecycle";
 
 function isUniqueConstraintError(error: unknown): boolean {
 	return (
@@ -19,6 +21,7 @@ export const POST = createRoute({
 	auth: true,
 	operation: "createRun",
 })(async ({ user }) => {
+	await expireOwnedRunSessions(user!.id);
 	let record: { id: string };
 	const startTime = new Date();
 	try {
@@ -69,13 +72,13 @@ export const GET = createRoute({
 
 	const [records, total] = await Promise.all([
 		prisma.runRecord.findMany({
-			where: { userId: user!.id, status: "COMPLETED" },
+			where: { userId: user!.id, ...COMPLETED_RUN_FILTER },
 			orderBy: { startTime: "desc" },
 			take,
 			skip,
 		}),
 		prisma.runRecord.count({
-			where: { userId: user!.id, status: "COMPLETED" },
+			where: { userId: user!.id, ...COMPLETED_RUN_FILTER },
 		}),
 	]);
 

@@ -69,4 +69,21 @@ describe("pending completion API", () => {
 			data: { status: "PENDING_COMPLETION" },
 		});
 	});
+
+	it("keeps a duration-only run for a later no-track completion", async () => {
+		gpsCacheMock.getAllPoints.mockResolvedValue([{}]);
+		gpsCacheMock.getRunEvents.mockResolvedValue([
+			{ type: "START", sequence: 0, timestamp: 1_000 },
+			{ type: "STOP", sequence: 1, timestamp: 11_000 },
+		]);
+		const response = await POST(
+			new Request("http://localhost/api/runs/run-1/pending-completion", {
+				method: "POST",
+			}),
+			{ params: Promise.resolve({ runId: "run-1" }) },
+		);
+
+		expect(await response.json()).toEqual({ pending: true });
+		expect(prismaMock.runRecord.delete).not.toHaveBeenCalled();
+	});
 });

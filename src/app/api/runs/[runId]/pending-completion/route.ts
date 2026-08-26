@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createRoute } from "@/lib/create-route";
-import { clearRunSession, getAllPoints, getRunEvents } from "@/lib/gps-cache";
+import { clearRunSession, getRunEvents } from "@/lib/gps-cache";
 import { prisma } from "@/lib/prisma";
 import { calculateActiveDuration } from "@/lib/run-timeline";
 
@@ -24,18 +24,15 @@ export const POST = createRoute({
 		return NextResponse.json({ error: "run is not active" }, { status: 409 });
 	}
 
-	const [points, events] = await Promise.all([
-		getAllPoints(params.runId),
-		getRunEvents(params.runId),
-	]);
+	const events = await getRunEvents(params.runId);
 	if (events.at(-1)?.type !== "STOP") {
 		return NextResponse.json({ error: "stop event required" }, { status: 409 });
 	}
 	const durationSeconds = calculateActiveDuration(events);
-	if (durationSeconds < 10 || points.length < 2) {
+	if (durationSeconds < 10) {
 		await prisma.runRecord.delete({ where: { id: params.runId } });
 		await clearRunSession(params.runId, user!.id);
-		return NextResponse.json({ abandoned: true, reason: "minimum_threshold" });
+		return NextResponse.json({ abandoned: true, reason: "minimum_duration" });
 	}
 
 	await prisma.runRecord.update({

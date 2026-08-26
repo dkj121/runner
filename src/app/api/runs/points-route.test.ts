@@ -19,6 +19,9 @@ vi.mock("next/headers", () => ({
 vi.mock("@/lib/auth", () => ({ auth: { api: authApi } }));
 vi.mock("@/lib/prisma", () => ({ prisma: prismaMock }));
 vi.mock("@/lib/gps-cache", () => gpsCacheMock);
+vi.mock("@/lib/run-lifecycle", () => ({
+	enforceRunLifecycle: vi.fn(),
+}));
 vi.mock("@/lib/logger", () => ({
 	createRequestLogger: vi.fn(() => ({})),
 	PerformanceLogger: class {
