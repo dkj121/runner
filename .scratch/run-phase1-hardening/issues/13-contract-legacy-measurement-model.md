@@ -4,12 +4,12 @@
 
 **Blocked by:** 10: Produce an authoritative Confirmed Run Result; 11: Count only Completed Runs; 12: Delete a Completed Run consistently
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] All API, UI, summary, aggregate, logging, and documentation consumers use explicit canonical measurement names and units.
-- [ ] No business comparison or sorting uses formatted Pace strings.
-- [ ] A new forward migration converts existing kilometer values to meters and initializes status from prior completion data.
-- [ ] Existing migration files remain byte-for-byte unchanged.
-- [ ] Legacy measurement fields are removed only after no reader or writer depends on them.
-- [ ] Existing Completed Runs retain equivalent displayed measurements after conversion.
-- [ ] Type checking, tests, linting, formatting, and production build remain green after contraction.
+- [x] All API, UI, summary, aggregate, logging, and documentation consumers use explicit canonical measurement names and units.
+- [x] No business comparison or sorting uses formatted Pace strings.
+- [x] A new forward migration converts existing kilometer values to meters and initializes status from prior completion data.
+- [x] Existing migration files remain byte-for-byte unchanged.
+- [x] Legacy measurement fields are removed only after no reader or writer depends on them.
+- [x] Existing Completed Runs retain equivalent displayed measurements after conversion.
+- [x] Type checking, tests, linting, formatting, and production build remain green after contraction.

@@ -1,38 +1,73 @@
-### POST /api/runs - 创建跑步
+@baseUrl = http://localhost:3000
+@sessionCookie = better-auth.session_token=replace-with-a-valid-session-cookie
+@start = 1787490000000
+
+### 创建 Personal Run（需要已登录 Cookie）
 # @name createRun
-POST http://localhost:3000/api/runs
+POST {{baseUrl}}/api/runs
+Cookie: {{sessionCookie}}
+
+> {% client.global.set("runId", response.body.runId); %}
+
+### 写入 START 事件
+POST {{baseUrl}}/api/runs/{{runId}}/events
+Cookie: {{sessionCookie}}
 Content-Type: application/json
 
 {
-  "userId": "test-user-1"
+  "events": [
+    { "type": "START", "sequence": 0, "timestamp": {{start}} }
+  ]
 }
 
-###
-
-### POST /api/runs/{id}/points - 推 GPS 点
-POST http://localhost:3000/api/runs/{{createRun.response.body.runId}}/points
+### 写入 WGS-84 GPS 点
+POST {{baseUrl}}/api/runs/{{runId}}/points
+Cookie: {{sessionCookie}}
 Content-Type: application/json
 
 {
   "points": [
-    { "lat": 32.041, "lng": 118.784, "timestamp": 1700000000000 },
-    { "lat": 32.042, "lng": 118.785, "timestamp": 1700000005000 },
-    { "lat": 32.043, "lng": 118.786, "timestamp": 1700000010000 }
+    { "lat": 32.041, "lng": 118.784, "timestamp": 1787490001000, "sequence": 1, "segmentIndex": 0, "accuracy": 5, "altitude": null },
+    { "lat": 32.0411, "lng": 118.7841, "timestamp": 1787490006000, "sequence": 2, "segmentIndex": 0, "accuracy": 5, "altitude": null }
   ]
 }
 
-###
-
-### PATCH /api/runs/{id} - 结束跑步
-PATCH http://localhost:3000/api/runs/{{createRun.response.body.runId}}
+### 写入 STOP 事件
+POST {{baseUrl}}/api/runs/{{runId}}/events
+Cookie: {{sessionCookie}}
 Content-Type: application/json
 
 {
-  "userId": "test-user-1",
-  "endTime": "2024-01-01T08:30:00.000Z",
-  "duration": 1861,
-  "distance": 5.23,
-  "avgPace": "5'43\""
+  "events": [
+    { "type": "STOP", "sequence": 3, "timestamp": 1787490011000 }
+  ]
 }
 
-###
+### 冻结为 Pending Completion
+POST {{baseUrl}}/api/runs/{{runId}}/pending-completion
+Cookie: {{sessionCookie}}
+
+### 生成服务端权威 Completed Run
+POST {{baseUrl}}/api/runs/{{runId}}/complete
+Cookie: {{sessionCookie}}
+Content-Type: application/json
+
+{
+  "stopTime": "2026-08-23T13:00:11.000Z",
+  "preview": {
+    "distanceMeters": 15,
+    "durationSeconds": 10
+  }
+}
+
+### 获取 Completed Run（仅 canonical 单位）
+GET {{baseUrl}}/api/runs/{{runId}}
+Cookie: {{sessionCookie}}
+
+### 获取 Completed Run 历史
+GET {{baseUrl}}/api/runs?take=20&skip=0
+Cookie: {{sessionCookie}}
+
+### 永久删除 Completed Run
+DELETE {{baseUrl}}/api/runs/{{runId}}
+Cookie: {{sessionCookie}}

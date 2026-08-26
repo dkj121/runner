@@ -641,7 +641,7 @@ logger.info({ playground }, "Playground activity");
 
 ```typescript
 logger.info({ runRecord }, "Run completed");
-// Only id, userId, distance, duration, avgPace are logged
+// Only id, userId, distanceMeters, durationSeconds, paceSecondsPerKm, and status are logged
 ```
 
 ### Error Serializer

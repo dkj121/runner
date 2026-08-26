@@ -4,7 +4,9 @@
 
 **Blocked by:** 15: Verify the automated Personal Run story
 
-**Status:** ready-for-agent
+**Status:** human-device-validation-required
+
+Automated prerequisite ticket 15 is complete. The remaining checks require physical Android Chrome and iOS Safari devices and cannot be completed in the local automated environment.
 
 - [ ] One Android device using Chrome completes the full Personal Run workflow.
 - [ ] One iOS device using Safari completes the full Personal Run workflow.

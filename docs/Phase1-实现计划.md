@@ -245,7 +245,7 @@ function useGpsTracking(options: GPSTrackingOptions): {
   - **即时配速**：最近 30 秒滑动平均
   - **卡路里**：基于 MET 的估算（默认 70kg + duration + speed）
   - **分段**：每公里自动切分
-- 输出格式：`{ elapsed, distance, avgPace, currentPace, calories, splits }`
+- 输出格式：`{ durationSeconds, distanceMeters, paceSecondsPerKm, currentPaceSecondsPerKm, calories, splits }`
 
 **run/page.tsx**（跑步记录页）：
 

@@ -16,7 +16,7 @@ Deliver a reliable Personal Run lifecycle in which each Runner has at most one A
 2. As a Runner, I want the app to prevent a second Active Run Session, so that concurrent tabs or repeated taps cannot create conflicting runs.
 3. As a Runner, I want a clear conflict response when an older Active or Pending Completion exists, so that I can resolve it before starting again.
 4. As a Runner, I want denied location permission to produce a clear explanation and retry action, so that I understand why tracking cannot start.
-5. As a Runner, I want my selected high, medium, or low sampling density to control tracking, so that I can choose the desired battery and detail trade-off.
+5. As a Runner, I want tracking quality controlled automatically, so that I do not need to understand or configure GPS sampling parameters before a run.
 6. As a Runner, I want only Valid Track Points to enter my route, so that inaccurate or impossible GPS observations do not corrupt it.
 7. As a Runner, I want inaccurate points beyond the accepted accuracy threshold rejected, so that weak GPS signals do not inflate distance.
 8. As a Runner, I want repeated points closer than the accepted movement threshold ignored, so that stationary GPS noise does not accumulate distance.
@@ -65,7 +65,10 @@ Deliver a reliable Personal Run lifecycle in which each Runner has at most one A
 - Each Runner may have at most one Active or Pending Completion. Attempts to start another return a conflict rather than creating a second session.
 - Starting, pausing, resuming, and stopping produce ordered Run Events. Active duration is the sum of event-defined active intervals, not the first-to-last GPS timestamp.
 - Pausing closes the current Track Segment. Resuming opens a new segment at the first subsequent Valid Track Point. Segments are never connected for distance or map display.
-- A GPS observation becomes a Valid Track Point only when its coordinates are finite and legal, its timestamp is ordered, accuracy is at most 50 meters, movement from the prior accepted point is at least 5 meters, and implied speed is at most 12 meters per second. The first legal point is accepted without a movement check.
+- A GPS observation becomes a Valid Track Point only when its coordinates are finite and legal, its timestamp is ordered, accuracy is at most 15 meters, movement from the prior accepted point exceeds both 5 meters and the combined uncertainty of the two observations, and implied speed is at most 8 meters per second. The first legal point is accepted without a movement check.
+- The browser always requests fresh high-accuracy observations while recording. Every observation may update the current-position marker and accuracy circle, but only Valid Track Points enter Track Segments, measurements, uploads, and retained results.
+- Browser GPS verification uses an HTTPS secure context. A non-secure LAN address is rejected before requesting location and explains that Chrome requires an HTTPS test URL.
+- Starting first enters a locating state. The first observation eligible to become a Valid Track Point creates the Run Session and starts active time; a Runner may explicitly start despite weak signal, in which case active time begins while the route still waits for a Valid Track Point.
 - Valid Track Points and Run Events carry a monotonically increasing Run Session-local sequence. Replayed uploads are deduplicated by Run Session and sequence.
 - Active data is stored temporarily in Redis in sequence order. Upload occurs every 15 seconds or 20 accumulated points, whichever happens first; stopping flushes immediately. Failed batches remain queued and use backoff retry.
 - Active data has a 24-hour retention window. A Run Session may last at most 12 hours, after which it moves to Pending Completion.
@@ -74,6 +77,8 @@ Deliver a reliable Personal Run lifecycle in which each Runner has at most one A
 - Completion uses a dedicated one-way service operation rather than a general record update. The first valid completion creates the Confirmed Run Result. Identical retries return it; conflicting retries are rejected.
 - The service is authoritative for distance, active duration, Pace, Track Segments, splits, and Estimated Calories. Client calculations are previews only.
 - Distance is represented in meters, duration in seconds, and Pace numerically as seconds per kilometer. Formatted Pace strings and kilometer conversion exist only at presentation boundaries.
+- Live current Pace uses the latest 30 seconds of Valid Track Points once the window contains more than 10 meters and 10 seconds of movement. Pace values use the conventional `5'30"` display with `/km` shown as a separate unit label.
+- Confirmed kilometer splits interpolate time at exact kilometer boundaries. A final partial split of at least 100 meters is retained with its normalized Pace so the summary accounts for the meaningful remainder of the route.
 - Persisted coordinates and distance calculations use WGS-84. GCJ-02 conversion occurs only in the AMap display layer and is never written back into run data.
 - Estimated Calories use configured Runner weight when available and a 70kg fallback otherwise. The value is explicitly approximate.
 - On successful completion, the service validates and normalizes Redis data into canonical Track Segments stored as JSON with the Completed Run, then clears active Redis data.
@@ -83,6 +88,9 @@ Deliver a reliable Personal Run lifecycle in which each Runner has at most one A
 - Personal Run routes are owner-only. Aggregate consumers never receive complete GPS tracks.
 - The existing summary route may remain for Phase 1. It must load the Confirmed Run Result rather than trusting navigation state or client preview data.
 - The mobile layout is responsive rather than tied to a fixed map height. At 390px width, map, metrics, Pending Completion feedback, and controls must remain usable without critical overlap.
+- The active map uses separate current-position and Track Segment layers. It follows the current position by default, enters free camera mode after a Runner gesture, offers a return-to-position action, and uses an overview only for a finished route. Map loading failure never stops Run Session recording.
+- Returning to the Run page or refreshing it restores an Active or Pending Completion Run Session, including measurements, the last Valid Track Point, Track Segment index, upload scheduling, event sequence, and immutable completion snapshot.
+- The run-control lock blocks application controls and navigation, survives refresh for the browser session, and requires a 1.5-second hold on the same control to unlock.
 - Existing database migration files remain immutable. A new forward migration introduces explicit status and canonical measurement fields, converts existing kilometer values to meters, initializes status from prior completion data, and removes formatted Pace storage only after all readers are migrated.
 - Existing completed data becomes Completed; records without an end time become Active and remain hidden unless resolved or cleaned.
 - Completed Run deletion is required for Phase 1 because retained routes contain sensitive location history.
@@ -92,12 +100,13 @@ Deliver a reliable Personal Run lifecycle in which each Runner has at most one A
 
 - Tests assert observable behavior through public seams. They must not reach into refs, Redis key layouts, private helpers, or ORM calls merely to prove implementation details.
 - The primary automated seam is the public Run API. It covers authentication, ownership, single-session conflicts, ordered Run Events, point validation and deduplication, state transitions, minimum completion rules, server calculations, idempotent completion, conflicting completion, deletion, aggregate transactions, and completed-only queries.
-- The client seam is the public run-tracking Hook. It covers browser GPS interaction, sampling selection, pause and resume behavior, Track Segment boundaries, upload retention and retry, Pending Completion, immutable retry snapshots, abandonment, and user-visible state transitions.
+- The client seam is the public run-tracking Hook. It covers browser GPS interaction, automatic quality filtering, locating and weak-signal start behavior, pause and resume behavior, Track Segment boundaries, upload retention and retry, active recovery, Pending Completion, immutable retry snapshots, abandonment, and user-visible state transitions.
 - Pure track calculations retain a small supplementary test suite using independently worked examples for Haversine distance, duration, Pace, validation thresholds, split boundaries, and coordinate handling. These tests support fast diagnosis but do not replace public-seam tests.
+- Client regression tests verify that ordinary movement inside the rolling window produces a current Pace, and summary tests cover compact route layout, historical split compatibility, and final partial-split presentation.
 - Existing Hook, calculation, and Run API authorization tests provide prior art for style and test setup.
 - Browser verification covers the complete Personal Run workflow with controlled geolocation and network failures before real-device testing.
 - Real-device acceptance runs on at least one Android device using Chrome and one iOS device using Safari.
-- GPS accuracy acceptance uses a known route of at least one kilometer. Final service-confirmed distance must remain within ±10%, and the rendered path must not contain obvious cross-block jumps or pause-connection lines.
+- GPS accuracy acceptance begins with a known outdoor route of 300–500 meters. Final service-confirmed distance must remain within ±10%, and the rendered path must not contain obvious cross-block jumps or pause-connection lines. A one-kilometer route remains the release-confidence follow-up.
 - Failure verification includes permission denial and retry, upload failure, completion failure, repeated batches after lost responses, duplicate start attempts, multi-tab conflict, overlong session handling, abandonment, deletion, and aggregate reversal.
 - Verification records device and OS, browser version, reference route and distance, measured distance, error percentage, permission behavior, pause and retry behavior, screenshots, and pass/fail conclusions.
 - Release validation requires the full automated test suite, type checking, linting, formatting, and production build to pass.
@@ -107,8 +116,7 @@ Deliver a reliable Personal Run lifecycle in which each Runner has at most one A
 - Group Run real-time position, Pace, heart-rate, or voice sharing
 - PlayGround membership, invitation, scheduling, and Location Picker behavior
 - Background GPS tracking while the browser is suspended
-- Recovery after browser refresh, process termination, or long offline periods
-- Cross-page recovery of Pending Completion
+- Recovery after process termination or long offline periods
 - Heart rate, cadence, elevation gain, elevation loss, and external-device metrics
 - Public or shareable Run summary links
 - Medical or health-grade calorie claims

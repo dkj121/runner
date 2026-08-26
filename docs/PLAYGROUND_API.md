@@ -379,20 +379,20 @@ Get the leaderboard (ranking) for a playground based on run records.
 			"userId": "user123",
 			"name": "张三",
 			"image": "https://...",
-			"totalDistance": 42195.5,
-			"totalTime": 12600,
+			"totalDistanceMeters": 42195.5,
+			"totalDurationSeconds": 12600,
 			"runCount": 15,
-			"bestPace": "04:58"
+			"bestPaceSecondsPerKm": 298
 		},
 		{
 			"rank": 2,
 			"userId": "user456",
 			"name": "李四",
 			"image": "https://...",
-			"totalDistance": 35000.0,
-			"totalTime": 10800,
+			"totalDistanceMeters": 35000.0,
+			"totalDurationSeconds": 10800,
 			"runCount": 12,
-			"bestPace": "05:12"
+			"bestPaceSecondsPerKm": 312
 		}
 	]
 }
@@ -400,10 +400,10 @@ Get the leaderboard (ranking) for a playground based on run records.
 
 **Field Descriptions:**
 
-- `totalDistance`: Total distance in meters
-- `totalTime`: Total running time in seconds
+- `totalDistanceMeters`: Total distance in meters
+- `totalDurationSeconds`: Total running time in seconds
 - `runCount`: Number of runs
-- `bestPace`: Best average pace in MM:SS format per kilometer
+- `bestPaceSecondsPerKm`: Best average pace in seconds per kilometer
 
 ---
 
