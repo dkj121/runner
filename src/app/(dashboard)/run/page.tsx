@@ -1,46 +1,93 @@
 "use client";
 
-import { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Map, Heart, Pause, Play, Square, Lock, Unlock } from "lucide-react";
+import { Map, Heart, Pause, Play, Square, Lock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import useRunTracker from "@/hooks/use-run-tracker";
 import { useSession } from "@/lib/auth-client";
 import RunMap from "@/components/map-loader";
 
-type Density = "high" | "medium" | "low";
-
-const DENSITY_LABEL: Record<Density, string> = {
-	high: "密集（1s）",
-	medium: "适中（5s）",
-	low: "经济（10s）",
-};
+const RUN_LOCK_STORAGE_KEY = "runner:run-controls-locked";
+const UNLOCK_HOLD_MS = 1_500;
 
 export default function RunPage() {
 	const router = useRouter();
 	const { data: session } = useSession();
 	const userId = session?.user?.id;
-	const [density, setDensity] = useState<Density>("high");
-	const tracker = useRunTracker(userId, { samplingDensity: density });
+	const tracker = useRunTracker(userId);
 
 	const isPaused = tracker.status === "paused";
 	const [locked, setLocked] = useState(false);
-	const [unlockHint, setUnlockHint] = useState(false);
+	const [unlocking, setUnlocking] = useState(false);
+	const unlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const hasActiveControls =
+		tracker.status === "running" || tracker.status === "paused";
+
+	useEffect(() => {
+		if (!hasActiveControls) {
+			if (
+				tracker.status === "idle" ||
+				tracker.status === "finished" ||
+				tracker.status === "pending_completion"
+			) {
+				sessionStorage.removeItem(RUN_LOCK_STORAGE_KEY);
+				setLocked(false);
+			}
+			return;
+		}
+		setLocked(sessionStorage.getItem(RUN_LOCK_STORAGE_KEY) === "true");
+	}, [hasActiveControls, tracker.status]);
+
+	useEffect(() => {
+		if (!locked) return;
+		const lockHistory = () => {
+			window.history.pushState({ runControlsLocked: true }, "");
+		};
+		lockHistory();
+		window.addEventListener("popstate", lockHistory);
+		return () => window.removeEventListener("popstate", lockHistory);
+	}, [locked]);
+
+	useEffect(
+		() => () => {
+			if (unlockTimerRef.current !== null) {
+				clearTimeout(unlockTimerRef.current);
+			}
+		},
+		[],
+	);
+
+	const lockControls = () => {
+		sessionStorage.setItem(RUN_LOCK_STORAGE_KEY, "true");
+		setLocked(true);
+	};
+
+	const cancelUnlock = () => {
+		if (unlockTimerRef.current !== null) {
+			clearTimeout(unlockTimerRef.current);
+			unlockTimerRef.current = null;
+		}
+		setUnlocking(false);
+	};
+
+	const beginUnlock = () => {
+		if (unlockTimerRef.current !== null) return;
+		setUnlocking(true);
+		unlockTimerRef.current = setTimeout(() => {
+			unlockTimerRef.current = null;
+			setUnlocking(false);
+			sessionStorage.removeItem(RUN_LOCK_STORAGE_KEY);
+			setLocked(false);
+		}, UNLOCK_HOLD_MS);
+	};
 
 	const handleStop = async () => {
 		const result = await tracker.stop();
 		if (result) {
 			router.push(`/summary?runId=${result.runId}`);
 		}
-	};
-
-	const handleUnlock = () => {
-		setUnlockHint(true);
-		setTimeout(() => {
-			setLocked(false);
-			setUnlockHint(false);
-		}, 400);
 	};
 
 	const handleRetryCompletion = async () => {
@@ -57,27 +104,12 @@ export default function RunPage() {
 		return (
 			<div className="flex h-full flex-col items-center justify-center gap-6 px-5">
 				<Map className="h-16 w-16 text-muted-foreground/30" />
-				<div className="flex flex-col items-center gap-3">
-					<p className="text-sm text-muted-foreground">采样密度</p>
-					<div className="flex gap-2">
-						{(["high", "medium", "low"] as Density[]).map((d) => (
-							<button
-								key={d}
-								type="button"
-								onClick={() => setDensity(d)}
-								className={`rounded-lg border px-3 py-1.5 text-xs transition-colors ${
-									density === d
-										? "border-primary bg-primary/10 text-primary"
-										: "border-border text-muted-foreground"
-								}`}
-							>
-								{DENSITY_LABEL[d]}
-							</button>
-						))}
-					</div>
-				</div>
+				<p className="max-w-64 text-center text-sm text-muted-foreground">
+					开始后将自动获取高精度定位，并过滤漂移和静止噪声。
+				</p>
 				<button
 					type="button"
+					aria-label="开始跑步"
 					onClick={() => tracker.start()}
 					disabled={tracker.isStarting}
 					className="flex h-22 w-22 items-center justify-center rounded-full bg-gradient-to-b from-primary to-orange-600 text-lg font-bold text-white shadow-[0_4px_32px_hsl(22_100%_56%/0.375)] disabled:cursor-wait disabled:opacity-60"
@@ -89,6 +121,38 @@ export default function RunPage() {
 						{tracker.startError}
 					</p>
 				)}
+			</div>
+		);
+	}
+
+	if (tracker.status === "locating") {
+		return (
+			<div className="flex h-full flex-col items-center justify-center gap-5 px-6 text-center">
+				<Map className="size-14 animate-pulse text-primary" />
+				<div>
+					<h1 className="text-xl font-semibold text-foreground">
+						正在获取 GPS
+					</h1>
+					<p className="mt-2 text-sm text-muted-foreground">
+						正在校准稳定起点，准备好后会自动开始计时。
+					</p>
+				</div>
+				{tracker.gpsState.error || tracker.startError ? (
+					<p role="alert" className="text-sm text-destructive">
+						{tracker.gpsState.error ?? tracker.startError}
+					</p>
+				) : null}
+				<div className="flex gap-3">
+					{tracker.gpsState.error ? (
+						<button
+							type="button"
+							onClick={tracker.retryGps}
+							className="rounded-lg border border-border px-4 py-2.5 text-sm text-foreground"
+						>
+							重试定位
+						</button>
+					) : null}
+				</div>
 			</div>
 		);
 	}
@@ -141,8 +205,41 @@ export default function RunPage() {
 	}
 
 	return (
-		<div className="flex flex-1 flex-col gap-5 px-5 pt-4 pb-4">
-			<RunMap track={tracker.track} />
+		<div className="flex flex-1 flex-col gap-3 px-4 pt-3 pb-4">
+			{locked ? (
+				<div
+					data-testid="run-lock-overlay"
+					className="fixed inset-0 z-[60] touch-none bg-background/25 backdrop-blur-[2px]"
+					onContextMenu={(event) => event.preventDefault()}
+				>
+					<div className="mx-auto flex h-full max-w-md flex-col items-end justify-end gap-2 px-5 pb-28">
+						<span className="mr-1 text-xs font-medium text-foreground/80">
+							长按解锁
+						</span>
+						<button
+							type="button"
+							aria-label="解除跑步控制锁定"
+							onPointerDown={beginUnlock}
+							onPointerUp={cancelUnlock}
+							onPointerCancel={cancelUnlock}
+							onPointerLeave={cancelUnlock}
+							className="relative flex h-18 w-18 touch-none items-center justify-center overflow-hidden rounded-full border border-primary bg-card shadow-lg"
+						>
+							<span
+								aria-hidden="true"
+								className={`absolute inset-0 origin-bottom bg-primary/20 transition-transform duration-[1500ms] ease-linear ${
+									unlocking ? "scale-y-100" : "scale-y-0 duration-0"
+								}`}
+							/>
+							<Lock className="relative h-6 w-6 text-primary" />
+						</button>
+					</div>
+				</div>
+			) : null}
+			<RunMap compact track={tracker.track} />
+			<p className="-mt-1 text-center text-xs text-muted-foreground">
+				{tracker.track.length >= 2 ? "轨迹记录中" : "正在等待稳定轨迹"}
+			</p>
 
 			{tracker.gpsState?.error && (
 				<div className="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3">
@@ -161,30 +258,34 @@ export default function RunPage() {
 
 			<div className="flex flex-col items-center gap-1">
 				<span className="font-mono text-5xl font-bold tracking-wider text-primary">
-					{tracker.duration}
+					{tracker.durationFormatted}
 				</span>
 				<span className="text-3xl font-semibold text-foreground">
-					{tracker.distance} 公里
+					{tracker.distanceKilometersFormatted} 公里
 				</span>
 			</div>
 
 			<div className="flex gap-3">
 				<Card size="sm" className="flex-1 items-center py-3.5">
 					<span className="text-xl font-semibold text-foreground">
-						{tracker.pace}
+						{tracker.paceFormatted}
 					</span>
-					<span className="text-[11px] text-muted-foreground">平均配速</span>
+					<span className="text-[11px] text-muted-foreground">
+						平均配速 /km
+					</span>
 				</Card>
 				<Card size="sm" className="flex-1 items-center py-3.5">
 					<span className="text-xl font-semibold text-primary">
-						{tracker.currentPace}
+						{tracker.currentPaceFormatted}
 					</span>
-					<span className="text-[11px] text-muted-foreground">即时配速</span>
+					<span className="text-[11px] text-muted-foreground">
+						即时配速 /km
+					</span>
 				</Card>
 				<Card size="sm" className="flex-1 items-center py-3.5">
 					<div className="flex items-center gap-1">
-						<Heart className="h-3.5 w-3.5 fill-current text-[#FF4444]" />
-						<span className="text-xl font-semibold text-[#FF4444]">--</span>
+						<Heart className="h-3.5 w-3.5 fill-current text-destructive" />
+						<span className="text-xl font-semibold text-destructive">--</span>
 					</div>
 					<span className="text-[11px] text-muted-foreground">心率 bpm</span>
 				</Card>
@@ -197,27 +298,9 @@ export default function RunPage() {
 			</div>
 
 			<div className="relative flex items-center justify-center gap-4">
-				{locked && (
-					<div
-						className="absolute inset-0 z-10 flex cursor-pointer items-center justify-center rounded-full"
-						onClick={handleUnlock}
-					>
-						{unlockHint ? (
-							<span className="rounded-full bg-background/80 px-6 py-2 text-sm text-muted-foreground backdrop-blur-sm">
-								已解锁
-							</span>
-						) : (
-							<div className="flex flex-col items-center gap-1">
-								<Unlock className="h-6 w-6 text-muted-foreground/50" />
-								<span className="text-xs text-muted-foreground/50">
-									轻触解锁
-								</span>
-							</div>
-						)}
-					</div>
-				)}
 				<button
 					type="button"
+					aria-label={isPaused ? "继续跑步" : "暂停跑步"}
 					onClick={isPaused ? tracker.resume : tracker.pause}
 					className={`flex h-18 w-18 items-center justify-center rounded-full border bg-card transition-opacity ${
 						locked ? "pointer-events-none opacity-0" : "border-border"
@@ -231,6 +314,7 @@ export default function RunPage() {
 				</button>
 				<button
 					type="button"
+					aria-label="停止跑步"
 					onClick={handleStop}
 					className={`flex h-22 w-22 items-center justify-center rounded-full bg-gradient-to-b from-primary to-orange-600 shadow-[0_4px_32px_hsl(22_100%_56%/0.375)] transition-opacity ${
 						locked ? "pointer-events-none opacity-0" : ""
@@ -240,7 +324,8 @@ export default function RunPage() {
 				</button>
 				<button
 					type="button"
-					onClick={() => setLocked(true)}
+					aria-label="锁定跑步控制"
+					onClick={lockControls}
 					className={`flex h-18 w-18 items-center justify-center rounded-full border bg-card transition-opacity ${
 						locked ? "pointer-events-none opacity-0" : "border-border"
 					}`}

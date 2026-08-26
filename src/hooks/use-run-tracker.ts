@@ -1,33 +1,48 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
-import { segmentDistance, formatDuration, calcPace } from "@/lib/track-calc";
+import { useState, useRef, useCallback, useEffect } from "react";
+import {
+	segmentDistance,
+	formatDuration,
+	calcPace,
+	calcDistance,
+} from "@/lib/track-calc";
 import useGpsTracking from "@/hooks/use-gps-tracking";
-import type { SequencedTrackPoint } from "@/lib/run-contract";
-import type { RunEventType } from "@/lib/run-contract";
-import { groupTrackSegments } from "@/lib/run-timeline";
+import type {
+	RunEvent,
+	RunEventType,
+	SequencedTrackPoint,
+	TrackObservation,
+} from "@/lib/run-contract";
+import {
+	isTrackObservationEligible,
+	isStableCalibration,
+	calibrationPoint,
+	isValidNextTrackPoint,
+} from "@/lib/track-point-validation";
+import {
+	calculateActiveDuration,
+	groupTrackSegments,
+} from "@/lib/run-timeline";
 
-type GpsPosition = Omit<SequencedTrackPoint, "sequence" | "segmentIndex">;
-
-interface RunOptions {
-	samplingDensity?: "high" | "medium" | "low";
-}
+type RunTrackerStatus =
+	| "idle"
+	| "locating"
+	| "running"
+	| "paused"
+	| "pending_completion"
+	| "finished";
 
 interface CompletionSnapshot {
-	startTime: string;
-	endTime: string;
-	duration: number;
-	distance: number;
-	avgPace: string;
-	trackPoints: SequencedTrackPoint[];
-	calories: number;
-	splits?: { km: number; pace: string; duration: number }[];
+	stopTime: string;
+	durationSeconds: number;
+	distanceMeters: number;
 }
 
-export default function useRunTracker(userId?: string, options?: RunOptions) {
-	const [status, setStatus] = useState<
-		"idle" | "running" | "paused" | "pending_completion" | "finished"
-	>("idle");
+const FLUSH_INTERVAL_MS = 15_000;
+
+export default function useRunTracker(userId?: string) {
+	const [status, setStatus] = useState<RunTrackerStatus>("idle");
 	const [completionError, setCompletionError] = useState<string | null>(null);
 	const [distance, setDistance] = useState(0);
 	const [duration, setDuration] = useState(0);
@@ -38,14 +53,15 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 	const [splits, setSplits] = useState<
 		{ km: number; pace: string; duration: number }[]
 	>([]);
+
+	const statusRef = useRef<RunTrackerStatus>("idle");
 	const lastPoint = useRef<SequencedTrackPoint | null>(null);
-	const runStartRef = useRef<number>(0);
-	const startTime = useRef<number>(0);
+	const runStartRef = useRef(0);
+	const startTime = useRef(0);
 	const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 	const accumulatedRef = useRef(0);
 	const distanceMetersRef = useRef(0);
 	const rollingWindow = useRef<SequencedTrackPoint[]>([]);
-
 	const runIdRef = useRef<string | null>(null);
 	const isStartingRef = useRef(false);
 	const pointQueue = useRef<SequencedTrackPoint[]>([]);
@@ -60,6 +76,40 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 	const stopEventPersistedRef = useRef(false);
 	const splitStartActiveSecondsRef = useRef(0);
 	const completionSnapshotRef = useRef<CompletionSnapshot | null>(null);
+	const calibrationPointsRef = useRef<TrackObservation[]>([]);
+	const calibrationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+		null,
+	);
+	const signalLostAtRef = useRef<number | null>(null);
+	const beginRunSessionRef = useRef<
+		((initialPoint?: TrackObservation) => Promise<void>) | null
+	>(null);
+
+	const updateStatus = useCallback((nextStatus: RunTrackerStatus) => {
+		statusRef.current = nextStatus;
+		setStatus(nextStatus);
+	}, []);
+
+	const startTimer = useCallback((startedAt = Date.now()) => {
+		if (timer.current !== null) clearInterval(timer.current);
+		startTime.current = startedAt;
+		timer.current = setInterval(() => {
+			setDuration(
+				accumulatedRef.current +
+					Math.floor((Date.now() - startTime.current) / 1000),
+			);
+		}, 1_000);
+	}, []);
+
+	const stopTimer = useCallback(() => {
+		if (timer.current === null) return;
+		accumulatedRef.current += Math.floor(
+			(Date.now() - startTime.current) / 1000,
+		);
+		clearInterval(timer.current);
+		timer.current = null;
+		setDuration(accumulatedRef.current);
+	}, []);
 
 	const pushEvent = useCallback(
 		async (type: RunEventType, requestedTimestamp?: number) => {
@@ -102,6 +152,31 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 			});
 			if (!response.ok)
 				throw new Error(`GPS upload failed: ${response.status}`);
+			const result = response.headers.get("content-type")?.includes("json")
+				? ((await response.json()) as {
+						accepted?: number;
+						rejected?: number;
+					})
+				: {};
+			if (result.rejected && result.rejected > 0) {
+				const syncResponse = await fetch(`/api/runs/${runId}/points`);
+				if (syncResponse.ok) {
+					const synced = (await syncResponse.json()) as {
+						points?: SequencedTrackPoint[];
+					};
+					const syncedPoints = synced.points ?? [];
+					const syncedDistance = groupTrackSegments(syncedPoints).reduce(
+						(total, segment) => total + calcDistance(segment),
+						0,
+					);
+					setTrack(syncedPoints);
+					distanceMetersRef.current = syncedDistance;
+					setDistance(syncedDistance / 1_000);
+					lastPoint.current = syncedPoints.at(-1) ?? null;
+					rollingWindow.current = syncedPoints.slice(-20);
+					setSplits([]);
+				}
+			}
 			pointQueue.current.splice(0, batch.length);
 			retryDelay.current = 1_000;
 		} catch {
@@ -110,7 +185,10 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 					retryTimer.current = null;
 					void flushPointsRef.current?.();
 				}, retryDelay.current);
-				retryDelay.current = Math.min(retryDelay.current * 2, 15_000);
+				retryDelay.current = Math.min(
+					retryDelay.current * 2,
+					FLUSH_INTERVAL_MS,
+				);
 			}
 		} finally {
 			flushInFlight.current = false;
@@ -118,99 +196,127 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 	}, []);
 	flushPointsRef.current = flushPoints;
 
-	const handleGpsPoint = useCallback(
-		(position: GpsPosition) => {
+	const acceptObservation = useCallback(
+		(position: TrackObservation) => {
 			const point: SequencedTrackPoint = {
 				...position,
-				sequence: sequenceRef.current++,
+				sequence: sequenceRef.current,
 				segmentIndex: segmentIndexRef.current,
 			};
-			setTrack((prev) => [...prev, point]);
+			if (!isValidNextTrackPoint(lastPoint.current, point)) return false;
+
+			sequenceRef.current++;
+			setTrack((previousTrack) => [...previousTrack, point]);
 			pointQueue.current.push(point);
 			if (pointQueue.current.length >= 20) void flushPoints();
 
-			const prev = lastPoint.current;
-			if (!prev) {
+			const previous = lastPoint.current;
+			if (!previous) {
 				lastPoint.current = point;
 				rollingWindow.current = [point];
-				return;
+				return true;
 			}
 
-			const dist = segmentDistance(prev, point);
-			if (dist > 5) {
-				distanceMetersRef.current += dist;
-				setDistance((d) => d + dist / 1000);
+			const distanceMeters = segmentDistance(previous, point);
+			distanceMetersRef.current += distanceMeters;
+			setDistance(distanceMetersRef.current / 1_000);
 
-				const km = Math.floor(distanceMetersRef.current / 1000);
-				if (
-					km > 0 &&
-					km !== Math.floor((distanceMetersRef.current - dist) / 1000)
-				) {
-					const activeSeconds =
-						accumulatedRef.current +
-						Math.floor((Date.now() - startTime.current) / 1000);
-					const kmDuration = activeSeconds - splitStartActiveSecondsRef.current;
-					setSplits((prev) => [
-						...prev,
-						{ km, pace: calcPace(1, kmDuration), duration: kmDuration },
-					]);
-					splitStartActiveSecondsRef.current = activeSeconds;
-				}
+			const completedKilometers = Math.floor(distanceMetersRef.current / 1_000);
+			if (
+				completedKilometers > 0 &&
+				completedKilometers !==
+					Math.floor((distanceMetersRef.current - distanceMeters) / 1_000)
+			) {
+				const activeSeconds =
+					accumulatedRef.current +
+					Math.floor((Date.now() - startTime.current) / 1_000);
+				const kilometerDuration =
+					activeSeconds - splitStartActiveSecondsRef.current;
+				setSplits((previousSplits) => [
+					...previousSplits,
+					{
+						km: completedKilometers,
+						pace: calcPace(1, kilometerDuration),
+						duration: kilometerDuration,
+					},
+				]);
+				splitStartActiveSecondsRef.current = activeSeconds;
 			}
 
 			lastPoint.current = point;
-
-			const cutoff = point.timestamp - 30000;
+			const cutoff = point.timestamp - 30_000;
 			rollingWindow.current = [
-				...rollingWindow.current.filter((p) => p.timestamp >= cutoff),
+				...rollingWindow.current.filter(
+					(windowPoint) => windowPoint.timestamp >= cutoff,
+				),
 				point,
 			];
 
 			if (rollingWindow.current.length >= 2) {
-				let winDist = 0;
-				const pts = rollingWindow.current;
-				for (let i = 1; i < pts.length; i++) {
-					winDist += segmentDistance(pts[i - 1], pts[i]);
-				}
-				const winDuration =
-					(pts[pts.length - 1].timestamp - pts[0].timestamp) / 1000;
-				if (winDist > 10 && winDuration > 10) {
-					setCurrentPace(calcPace(winDist / 1000, winDuration));
+				const windowPoints = rollingWindow.current;
+				const windowDistance = calcDistance(windowPoints);
+				const windowDuration =
+					(windowPoints.at(-1)!.timestamp - windowPoints[0].timestamp) / 1_000;
+				if (windowDistance > 0.01 && windowDuration > 10) {
+					setCurrentPace(calcPace(windowDistance, windowDuration));
 				}
 			}
+			return true;
 		},
 		[flushPoints],
 	);
 
-	const gps = useGpsTracking({
-		onPoint: handleGpsPoint,
-		samplingDensity: options?.samplingDensity,
-	});
+	const handleGpsPoint = useCallback(
+		(position: TrackObservation) => {
+			if (statusRef.current === "locating") {
+				if (!isTrackObservationEligible(position)) return;
+				calibrationPointsRef.current.push(position);
+				if (isStableCalibration(calibrationPointsRef.current)) {
+					if (calibrationTimerRef.current !== null) {
+						clearTimeout(calibrationTimerRef.current);
+						calibrationTimerRef.current = null;
+					}
+					void beginRunSessionRef.current?.(
+						calibrationPoint(calibrationPointsRef.current),
+					);
+				}
+				return;
+			}
+			if (statusRef.current !== "running") return;
+			const observationTimestamp = position.timestamp;
+			if (!isTrackObservationEligible(position)) {
+				signalLostAtRef.current ??= observationTimestamp;
+				return;
+			}
+			if (
+				signalLostAtRef.current !== null &&
+				position.timestamp - signalLostAtRef.current >= 10_000
+			) {
+				segmentIndexRef.current += 1;
+				lastPoint.current = null;
+				rollingWindow.current = [];
+				setCurrentPace("--");
+			}
+			signalLostAtRef.current = null;
+			acceptObservation(position);
+		},
+		[acceptObservation],
+	);
 
-	const startTimer = useCallback(() => {
-		startTime.current = Date.now();
-		timer.current = setInterval(() => {
-			setDuration(
-				() =>
-					accumulatedRef.current +
-					Math.floor((Date.now() - startTime.current) / 1000),
-			);
-		}, 1000);
-	}, []);
+	const {
+		startTracking: startGpsTracking,
+		stopTracking: stopGpsTracking,
+		state: gpsState,
+	} = useGpsTracking({ onPoint: handleGpsPoint });
 
-	const stopTimer = useCallback(() => {
-		accumulatedRef.current += Math.floor(
-			(Date.now() - startTime.current) / 1000,
-		);
-		if (timer.current !== null) {
-			clearInterval(timer.current);
-			timer.current = null;
-		}
-	}, []);
+	const startFlushTimer = useCallback(() => {
+		if (flushTimer.current !== null) clearInterval(flushTimer.current);
+		flushTimer.current = setInterval(flushPoints, FLUSH_INTERVAL_MS);
+	}, [flushPoints]);
 
 	const clearResources = useCallback(() => {
 		stopTimer();
-		gps.stopTracking();
+		stopGpsTracking();
 		if (flushTimer.current !== null) {
 			clearInterval(flushTimer.current);
 			flushTimer.current = null;
@@ -219,118 +325,237 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 			clearTimeout(retryTimer.current);
 			retryTimer.current = null;
 		}
-	}, [stopTimer, gps]);
+	}, [stopTimer, stopGpsTracking]);
+
+	const beginRunSession = useCallback(
+		async (initialPoint?: TrackObservation) => {
+			if (!userId || isStartingRef.current || runIdRef.current) return;
+			if (calibrationTimerRef.current !== null) {
+				clearTimeout(calibrationTimerRef.current);
+				calibrationTimerRef.current = null;
+			}
+			isStartingRef.current = true;
+			setIsStarting(true);
+			setStartError(null);
+
+			try {
+				const response = await fetch("/api/runs", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+				});
+				if (!response.ok) {
+					setStartError(
+						response.status === 409
+							? "已有未完成的跑步，请先完成后再试。"
+							: "无法开始跑步，请重试。",
+					);
+					updateStatus("idle");
+					stopGpsTracking();
+					return;
+				}
+				const data = await response.json();
+				if (typeof data.runId !== "string") {
+					setStartError("无法开始跑步，请重试。");
+					updateStatus("idle");
+					stopGpsTracking();
+					return;
+				}
+				runIdRef.current = data.runId;
+			} catch (error) {
+				setStartError("无法开始跑步，请重试。");
+				console.error("创建跑步会话失败", error);
+				updateStatus("idle");
+				stopGpsTracking();
+				return;
+			} finally {
+				isStartingRef.current = false;
+				setIsStarting(false);
+			}
+
+			const startedAt = Date.now();
+			accumulatedRef.current = 0;
+			distanceMetersRef.current = 0;
+			rollingWindow.current = [];
+			runStartRef.current = startedAt;
+			sequenceRef.current = 1;
+			segmentIndexRef.current = 0;
+			lastEventTimestampRef.current = startedAt;
+			stopEventPersistedRef.current = false;
+			splitStartActiveSecondsRef.current = 0;
+			retryDelay.current = 1_000;
+			completionSnapshotRef.current = null;
+			calibrationPointsRef.current = [];
+			signalLostAtRef.current = null;
+			lastPoint.current = null;
+			pointQueue.current = [];
+			setDistance(0);
+			setDuration(0);
+			setTrack([]);
+			setCurrentPace("--");
+			setSplits([]);
+			updateStatus("running");
+			startFlushTimer();
+			startTimer(startedAt);
+			if (initialPoint) acceptObservation(initialPoint);
+		},
+		[
+			userId,
+			calibrationTimerRef,
+			updateStatus,
+			stopGpsTracking,
+			startFlushTimer,
+			startTimer,
+			acceptObservation,
+		],
+	);
+	beginRunSessionRef.current = beginRunSession;
+
+	useEffect(() => {
+		if (!userId) return;
+		let cancelled = false;
+		void fetch("/api/runs/active")
+			.then((response) => (response.ok ? response.json() : null))
+			.then((payload) => {
+				if (cancelled || !payload?.active) return;
+				const active = payload.active as {
+					runId: string;
+					status: "running" | "paused" | "pending_completion";
+					startTime: string;
+					points: SequencedTrackPoint[];
+					events: RunEvent[];
+				};
+				const points = active.points ?? [];
+				const events = active.events ?? [];
+				const restoredAt = Date.now();
+				const distanceMeters = groupTrackSegments(points).reduce(
+					(total, segment) => total + calcDistance(segment),
+					0,
+				);
+				const restoredDuration = calculateActiveDuration(events, restoredAt);
+				const latestSegment = groupTrackSegments(points).at(-1) ?? [];
+
+				runIdRef.current = active.runId;
+				runStartRef.current = new Date(active.startTime).getTime();
+				sequenceRef.current = Math.max(
+					0,
+					...events.map((event) => event.sequence + 1),
+					...points.map((point) => point.sequence + 1),
+				);
+				lastEventTimestampRef.current =
+					events.at(-1)?.timestamp ?? runStartRef.current;
+				segmentIndexRef.current = Math.max(
+					0,
+					...points.map((point) => point.segmentIndex ?? 0),
+					events.filter((event) => event.type === "RESUME").length,
+				);
+				distanceMetersRef.current = distanceMeters;
+				accumulatedRef.current = restoredDuration;
+				lastPoint.current = latestSegment.at(-1) ?? null;
+				rollingWindow.current = latestSegment.slice(-20);
+				stopEventPersistedRef.current = events.at(-1)?.type === "STOP";
+				setTrack(points);
+				setDistance(distanceMeters / 1_000);
+				setDuration(restoredDuration);
+				updateStatus(active.status);
+
+				if (active.status === "running") {
+					startTimer(restoredAt);
+					startGpsTracking();
+					startFlushTimer();
+				} else if (active.status === "pending_completion") {
+					const stopTimestamp =
+						events.findLast((event) => event.type === "STOP")?.timestamp ??
+						restoredAt;
+					completionSnapshotRef.current = {
+						stopTime: new Date(stopTimestamp).toISOString(),
+						durationSeconds: calculateActiveDuration(events, stopTimestamp),
+						distanceMeters: Math.round(distanceMeters * 100) / 100,
+					};
+				}
+			})
+			.catch(() => undefined);
+		return () => {
+			cancelled = true;
+		};
+	}, [userId, startGpsTracking, startTimer, startFlushTimer, updateStatus]);
 
 	const start = useCallback(async () => {
-		if (!userId || isStartingRef.current) return;
-
-		isStartingRef.current = true;
-		setIsStarting(true);
+		if (!userId || statusRef.current !== "idle") return;
 		setStartError(null);
-
-		try {
-			const res = await fetch("/api/runs", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-			});
-			if (!res.ok) {
-				setStartError(
-					res.status === 409
-						? "已有未完成的跑步，请先完成后再试。"
-						: "无法开始跑步，请重试。",
-				);
-				console.error("创建跑步会话失败", res.status);
-				return;
-			}
-			const data = await res.json();
-			if (typeof data.runId !== "string") {
-				setStartError("无法开始跑步，请重试。");
-				console.error("创建跑步会话失败", "响应缺少 runId");
-				return;
-			}
-			runIdRef.current = data.runId;
-		} catch (e) {
-			setStartError("无法开始跑步，请重试。");
-			console.error("创建跑步会话失败", e);
-			return;
-		} finally {
-			isStartingRef.current = false;
-			setIsStarting(false);
+		calibrationPointsRef.current = [];
+		signalLostAtRef.current = null;
+		updateStatus("locating");
+		startGpsTracking();
+		if (calibrationTimerRef.current !== null) {
+			clearTimeout(calibrationTimerRef.current);
 		}
+		calibrationTimerRef.current = setTimeout(() => {
+			calibrationTimerRef.current = null;
+			stopGpsTracking();
+			setStartError("暂时无法获得稳定定位，请到室外开阔处重试");
+			updateStatus("idle");
+		}, 30_000);
+	}, [userId, updateStatus, startGpsTracking, stopGpsTracking]);
 
-		accumulatedRef.current = 0;
-		distanceMetersRef.current = 0;
-		rollingWindow.current = [];
-		runStartRef.current = Date.now();
-		sequenceRef.current = 1;
-		segmentIndexRef.current = 0;
-		lastEventTimestampRef.current = runStartRef.current;
-		stopEventPersistedRef.current = false;
-		splitStartActiveSecondsRef.current = 0;
-		retryDelay.current = 1_000;
-		setStatus("running");
-		setDistance(0);
-		setDuration(0);
-		setTrack([]);
-		setCurrentPace("--");
-		setSplits([]);
-		lastPoint.current = null;
-		pointQueue.current = [];
-
-		flushTimer.current = setInterval(flushPoints, 15000);
-		startTimer();
-		gps.startTracking();
-	}, [startTimer, gps, flushPoints, userId]);
+	const startAnyway = useCallback(async () => {
+		if (statusRef.current !== "locating") return;
+		await beginRunSession();
+	}, [beginRunSession]);
 
 	const pause = useCallback(async () => {
-		if (status !== "running") return false;
-		await flushPoints();
-		if (pointQueue.current.length > 0 || !(await pushEvent("PAUSE")))
-			return false;
+		if (statusRef.current !== "running") return false;
 		clearResources();
+		await flushPoints();
+		if (pointQueue.current.length > 0 || !(await pushEvent("PAUSE"))) {
+			startTimer();
+			startGpsTracking();
+			startFlushTimer();
+			return false;
+		}
 		lastPoint.current = null;
+		signalLostAtRef.current = null;
 		rollingWindow.current = [];
 		setCurrentPace("--");
-		setStatus("paused");
+		updateStatus("paused");
 		return true;
-	}, [status, flushPoints, pushEvent, clearResources]);
+	}, [
+		clearResources,
+		flushPoints,
+		pushEvent,
+		startTimer,
+		startGpsTracking,
+		startFlushTimer,
+		updateStatus,
+	]);
 
 	const resume = useCallback(async () => {
-		if (status !== "paused" || !(await pushEvent("RESUME"))) return false;
+		if (statusRef.current !== "paused" || !(await pushEvent("RESUME")))
+			return false;
 		segmentIndexRef.current++;
 		lastPoint.current = null;
+		signalLostAtRef.current = null;
 		rollingWindow.current = [];
-		setStatus("running");
+		setCurrentPace("--");
+		updateStatus("running");
 		startTimer();
-		gps.startTracking();
-		flushTimer.current = setInterval(flushPoints, 15000);
+		startGpsTracking();
+		startFlushTimer();
 		return true;
-	}, [status, pushEvent, startTimer, gps, flushPoints]);
+	}, [pushEvent, updateStatus, startTimer, startGpsTracking, startFlushTimer]);
 
-	const getSnapshot = useCallback(
-		(now = Date.now()): CompletionSnapshot => {
-			const liveDelta =
-				timer.current !== null
-					? Math.floor((now - startTime.current) / 1000)
-					: 0;
-			const finalDuration = accumulatedRef.current + liveDelta;
-			const distKm = parseFloat(distance.toFixed(2));
-			const calories = Math.round(distKm * 70);
-			return {
-				startTime: new Date(runStartRef.current).toISOString(),
-				endTime: new Date(now).toISOString(),
-				duration: finalDuration,
-				distance: distKm,
-				avgPace: calcPace(distance, finalDuration),
-				trackPoints: track,
-				calories,
-				splits: splits.length > 0 ? splits : undefined,
-			};
-		},
-		[distance, track, splits],
-	);
+	const getSnapshot = useCallback((now = Date.now()): CompletionSnapshot => {
+		const liveDelta =
+			timer.current !== null
+				? Math.floor((now - startTime.current) / 1_000)
+				: 0;
+		return {
+			stopTime: new Date(now).toISOString(),
+			durationSeconds: accumulatedRef.current + liveDelta,
+			distanceMeters: Math.round(distanceMetersRef.current * 100) / 100,
+		};
+	}, []);
 
-	const retryCompletion = useCallback(async () => {
+	const retryCompletionRequest = useCallback(async () => {
 		const runId = runIdRef.current;
 		const snapshot = completionSnapshotRef.current;
 		if (!runId || !snapshot) return;
@@ -340,10 +565,10 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
-					stopTime: snapshot.endTime,
+					stopTime: snapshot.stopTime,
 					preview: {
-						distanceMeters: snapshot.distance * 1_000,
-						durationSeconds: snapshot.duration,
+						distanceMeters: snapshot.distanceMeters,
+						durationSeconds: snapshot.durationSeconds,
 					},
 				}),
 			});
@@ -351,28 +576,28 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 				throw new Error(`completion failed: ${response.status}`);
 			const body = await response.json();
 			if (!body.result) throw new Error("confirmed result missing");
-			setStatus("finished");
+			updateStatus("finished");
 			runIdRef.current = null;
+			completionSnapshotRef.current = null;
 			return body.result;
 		} catch {
 			setCompletionError("保存跑步结果失败，请重试或放弃。");
-			return;
 		}
-	}, []);
+	}, [updateStatus]);
 
 	const stop = useCallback(async () => {
 		const runId = runIdRef.current;
 		if (!runId) return;
 		let stopTimestamp: number;
-		if (status === "pending_completion") {
+		if (statusRef.current === "pending_completion") {
 			const snapshot = completionSnapshotRef.current;
 			if (!snapshot) return;
-			stopTimestamp = new Date(snapshot.endTime).getTime();
+			stopTimestamp = new Date(snapshot.stopTime).getTime();
 		} else {
 			stopTimestamp = Math.max(Date.now(), lastEventTimestampRef.current + 1);
 			completionSnapshotRef.current = getSnapshot(stopTimestamp);
 			clearResources();
-			setStatus("pending_completion");
+			updateStatus("pending_completion");
 			setCompletionError(null);
 		}
 
@@ -398,27 +623,27 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 			if (result.abandoned) {
 				runIdRef.current = null;
 				completionSnapshotRef.current = null;
-				setStatus("idle");
-				setCompletionError("跑步未达到 10 秒或 2 个有效轨迹点，已放弃。");
+				updateStatus("idle");
+				setCompletionError("跑步未达到最短记录时长，已放弃。");
 				return;
 			}
 		} catch {
 			setCompletionError("进入待完成状态失败，请重试或放弃。");
 			return;
 		}
-		return retryCompletion();
+		return retryCompletionRequest();
 	}, [
-		status,
-		retryCompletion,
 		getSnapshot,
 		clearResources,
+		updateStatus,
 		flushPoints,
 		pushEvent,
+		retryCompletionRequest,
 	]);
 
 	const abandon = useCallback(async () => {
 		const runId = runIdRef.current;
-		if (!runId || status !== "pending_completion") return false;
+		if (!runId || statusRef.current !== "pending_completion") return false;
 		const response = await fetch(`/api/runs/${runId}`, { method: "DELETE" });
 		if (!response.ok) {
 			setCompletionError("放弃失败，请重试。");
@@ -428,31 +653,43 @@ export default function useRunTracker(userId?: string, options?: RunOptions) {
 		completionSnapshotRef.current = null;
 		pointQueue.current = [];
 		setTrack([]);
-		setStatus("idle");
+		updateStatus("idle");
 		setCompletionError(null);
 		return true;
-	}, [status]);
+	}, [updateStatus]);
+
+	useEffect(
+		() => () => {
+			if (timer.current !== null) clearInterval(timer.current);
+			if (flushTimer.current !== null) clearInterval(flushTimer.current);
+			if (retryTimer.current !== null) clearTimeout(retryTimer.current);
+			if (calibrationTimerRef.current !== null) {
+				clearTimeout(calibrationTimerRef.current);
+			}
+		},
+		[],
+	);
 
 	const pace = calcPace(distance, duration);
-	const distKm = parseFloat(distance.toFixed(2));
-	const calories = Math.round(distKm * 70);
+	const distanceKilometers = Number(distance.toFixed(2));
 
 	return {
 		status,
 		completionError,
 		isStarting,
 		startError,
-		distance: distance.toFixed(2),
-		duration: formatDuration(duration),
-		pace,
-		currentPace,
+		distanceKilometersFormatted: distance.toFixed(2),
+		durationFormatted: formatDuration(duration),
+		paceFormatted: pace,
+		currentPaceFormatted: currentPace,
 		splits,
-		calories,
+		calories: Math.round(distanceKilometers * 70),
 		track,
 		trackSegments: groupTrackSegments(track),
-		gpsState: gps.state,
-		retryGps: gps.startTracking,
+		gpsState,
+		retryGps: startGpsTracking,
 		start,
+		startAnyway,
 		pause,
 		resume,
 		stop,

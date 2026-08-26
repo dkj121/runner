@@ -1,27 +1,11 @@
 "use client";
 
 import { useRef, useCallback, useEffect, useState } from "react";
-
-type SamplingDensity = "high" | "medium" | "low";
-
-interface GpsPoint {
-	lat: number;
-	lng: number;
-	timestamp: number;
-	accuracy: number;
-	altitude: number | null;
-}
+import type { TrackObservation } from "@/lib/run-contract";
 
 interface UseGpsTrackingOptions {
-	samplingDensity?: SamplingDensity;
-	onPoint: (p: GpsPoint) => void;
+	onPoint: (point: TrackObservation) => void;
 }
-
-const DENSITY_INTERVAL: Record<SamplingDensity, number> = {
-	high: 1000,
-	medium: 5000,
-	low: 10000,
-};
 
 const ERROR_MESSAGES: Record<number, string> = {
 	1: "定位权限被拒绝，请在系统设置中允许定位",
@@ -29,40 +13,44 @@ const ERROR_MESSAGES: Record<number, string> = {
 	3: "定位超时，请重试",
 };
 
-export default function useGpsTracking({
-	samplingDensity = "high",
-	onPoint,
-}: UseGpsTrackingOptions) {
+const INSECURE_CONTEXT_MESSAGE =
+	"Chrome 要求通过 HTTPS 访问后才能使用定位，请改用 HTTPS 测试地址";
+
+export default function useGpsTracking({ onPoint }: UseGpsTrackingOptions) {
 	const watchIdRef = useRef<number | null>(null);
 	const onPointRef = useRef(onPoint);
-	const intervalRef = useRef(DENSITY_INTERVAL[samplingDensity]);
-	const lastEmitRef = useRef(0);
 	const [state, setState] = useState({
 		isTracking: false,
-		currentPosition: null as { lat: number; lng: number } | null,
+		currentPosition: null as TrackObservation | null,
+		accuracy: null as number | null,
 		error: null as string | null,
 	});
 
 	onPointRef.current = onPoint;
-	intervalRef.current = DENSITY_INTERVAL[samplingDensity];
 
 	const startTracking = useCallback(() => {
+		if (window.isSecureContext === false) {
+			setState((previous) => ({
+				...previous,
+				isTracking: false,
+				error: INSECURE_CONTEXT_MESSAGE,
+			}));
+			return;
+		}
 		if (!navigator.geolocation) {
 			setState((prev) => ({ ...prev, error: "浏览器不支持定位功能" }));
 			return;
 		}
+		if (watchIdRef.current !== null) {
+			navigator.geolocation.clearWatch(watchIdRef.current);
+			watchIdRef.current = null;
+		}
 
 		setState((prev) => ({ ...prev, error: null, isTracking: true }));
-		lastEmitRef.current = 0;
 
 		watchIdRef.current = navigator.geolocation.watchPosition(
 			(pos) => {
-				const minInterval = intervalRef.current;
-				const now = Date.now();
-				if (minInterval > 0 && now - lastEmitRef.current < minInterval) return;
-				lastEmitRef.current = now;
-
-				const point: GpsPoint = {
+				const point: TrackObservation = {
 					lat: pos.coords.latitude,
 					lng: pos.coords.longitude,
 					timestamp: pos.timestamp,
@@ -70,20 +58,21 @@ export default function useGpsTracking({
 					altitude: pos.coords.altitude,
 				};
 
-				onPointRef.current(point);
 				setState((prev) => ({
 					...prev,
-					currentPosition: { lat: point.lat, lng: point.lng },
+					currentPosition: point,
+					accuracy: point.accuracy,
 				}));
+				onPointRef.current(point);
 			},
 			(err) => {
-				console.error("[GPS]", err);
+				console.warn("[GPS]", { code: err.code, message: err.message });
 				setState((prev) => ({
 					...prev,
 					error: ERROR_MESSAGES[err.code] ?? "定位失败",
 				}));
 			},
-			{ enableHighAccuracy: true, maximumAge: 1000 },
+			{ enableHighAccuracy: true, maximumAge: 0, timeout: 10_000 },
 		);
 	}, []);
 
@@ -92,7 +81,7 @@ export default function useGpsTracking({
 			navigator.geolocation.clearWatch(watchIdRef.current);
 			watchIdRef.current = null;
 		}
-		setState({ isTracking: false, currentPosition: null, error: null });
+		setState((prev) => ({ ...prev, isTracking: false }));
 	}, []);
 
 	useEffect(() => {

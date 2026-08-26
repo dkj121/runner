@@ -17,8 +17,8 @@ import { useSearchParams } from "next/navigation";
 interface LeaderboardEntry {
 	userId: string;
 	name: string;
-	totalDistance: number;
-	totalTime: number;
+	totalDistanceMeters: number;
+	totalDurationSeconds: number;
 	runCount: number;
 }
 
@@ -93,7 +93,7 @@ function LeaderboardContent({ playgroundId }: { playgroundId: string }) {
 							>
 								<span className="text-lg font-bold">{idx + 1}</span>
 								<span className="text-[10px]">
-									{entry.totalDistance.toFixed(1)}km
+									{(entry.totalDistanceMeters / 1_000).toFixed(1)}km
 								</span>
 							</div>
 						</div>
@@ -150,11 +150,11 @@ function LeaderboardContent({ playgroundId }: { playgroundId: string }) {
 								</div>
 							</TableCell>
 							<TableCell className="text-right font-mono text-sm tabular-nums">
-								{entry.totalDistance.toFixed(1)} km
+								{(entry.totalDistanceMeters / 1_000).toFixed(1)} km
 							</TableCell>
 							<TableCell className="text-right font-mono text-sm text-muted-foreground tabular-nums">
-								{Math.floor(entry.totalTime / 60)}:
-								{(entry.totalTime % 60).toString().padStart(2, "0")}
+								{Math.floor(entry.totalDurationSeconds / 60)}:
+								{(entry.totalDurationSeconds % 60).toString().padStart(2, "0")}
 							</TableCell>
 							<TableCell className="text-right font-mono text-sm text-muted-foreground tabular-nums">
 								{entry.runCount}

@@ -1,28 +1,29 @@
 "use client";
 
-import { useEffect, useState, lazy, Suspense } from "react";
+import React, { lazy, Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, MapIcon } from "lucide-react";
+import { ArrowLeft, Loader2, MapIcon, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { useSession } from "@/lib/auth-client";
-import { formatDuration } from "@/lib/track-calc";
+import { formatDuration, formatPaceSeconds } from "@/lib/track-calc";
 
 const RunMap = lazy(() => import("@/components/map-loader"));
 
 interface SplitRow {
 	km: number;
-	pace: string;
-	duration: number;
-	barH: number;
-	barColor: string;
+	distanceMeters: number;
+	paceSecondsPerKm: number;
+	durationSeconds: number;
+	isPartial: boolean;
+	barHeight: number;
 }
 
 interface RunData {
 	id: string;
-	distance: number;
-	duration: number;
-	avgPace: string;
+	distanceMeters: number;
+	durationSeconds: number;
+	paceSecondsPerKm: number | null;
 	calories: number;
 	startTime: string;
 	endTime: string;
@@ -41,20 +42,14 @@ function formatDate(iso: string) {
 	return `${y}年${m}月${day}日 ${hh}:${mm}`;
 }
 
-// formatPace 是 summary 页特有的展示格式化（"5:30 /km" → "5'30\""），非重复实现，保留本地
-function formatPace(pace: string): string {
-	// "5:30 /km" → "5'30""
-	const match = pace.match(/(\d+):(\d+)/);
-	if (!match) return pace;
-	return `${match[1]}'${match[2]}"`;
-}
-
-function paceToBarH(pace: string): number {
-	// faster pace → taller bar, clamp between 40-100
-	const match = pace.match(/(\d+):(\d+)/);
-	if (!match) return 60;
-	const totalSec = parseInt(match[1]) * 60 + parseInt(match[2]);
-	return Math.max(40, Math.min(100, 160 - totalSec));
+function formatRunPeriod(startIso: string, endIso: string) {
+	const start = new Date(startIso);
+	const end = new Date(endIso);
+	if (start.toDateString() !== end.toDateString()) {
+		return `${formatDate(startIso)} — ${formatDate(endIso)}`;
+	}
+	const endTime = `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`;
+	return `${formatDate(startIso)} — ${endTime}`;
 }
 
 export default function SummaryPage() {
@@ -66,6 +61,8 @@ export default function SummaryPage() {
 
 	const [data, setData] = useState<RunData | null>(null);
 	const [loading, setLoading] = useState(true);
+	const [deleting, setDeleting] = useState(false);
+	const [deleteError, setDeleteError] = useState<string | null>(null);
 
 	useEffect(() => {
 		if (!runId) {
@@ -91,17 +88,39 @@ export default function SummaryPage() {
 			const res = await fetch(`/api/runs/${id}`);
 			const record = await res.json();
 			const rawSplits = record.splits as
-				| { km: number; pace: string; duration: number }[]
+				| {
+						km: number;
+						distanceMeters?: number;
+						paceSecondsPerKm: number;
+						durationSeconds: number;
+						isPartial?: boolean;
+				  }[]
 				| null;
-			const splits: SplitRow[] | null = rawSplits
-				? rawSplits.map((s) => ({
-						km: s.km,
-						pace: formatPace(s.pace),
-						duration: s.duration,
-						barH: paceToBarH(s.pace),
-						barColor: paceToBarH(s.pace) >= 70 ? "bg-primary" : "bg-orange-500",
-					}))
+			const fastestSplitPace = rawSplits?.length
+				? Math.min(...rawSplits.map((split) => split.paceSecondsPerKm))
 				: null;
+			const slowestSplitPace = rawSplits?.length
+				? Math.max(...rawSplits.map((split) => split.paceSecondsPerKm))
+				: null;
+			const splits: SplitRow[] | null =
+				rawSplits && fastestSplitPace && slowestSplitPace
+					? rawSplits.map((split) => ({
+							km: split.km,
+							distanceMeters: split.distanceMeters ?? 1_000,
+							paceSecondsPerKm: split.paceSecondsPerKm,
+							durationSeconds: split.durationSeconds,
+							isPartial: split.isPartial ?? false,
+							barHeight:
+								fastestSplitPace === slowestSplitPace
+									? 64
+									: Math.round(
+											48 +
+												((slowestSplitPace - split.paceSecondsPerKm) /
+													(slowestSplitPace - fastestSplitPace)) *
+													32,
+										),
+						}))
+					: null;
 
 			const storedTrack = record.trackPoints as
 				| {
@@ -123,10 +142,10 @@ export default function SummaryPage() {
 					: 0;
 
 			setData({
-				id: record.id,
-				distance: record.distance,
-				duration: record.duration,
-				avgPace: formatPace(record.avgPace || "--"),
+				id: typeof record.id === "string" ? record.id : id,
+				distanceMeters: record.distanceMeters,
+				durationSeconds: record.durationSeconds,
+				paceSecondsPerKm: record.paceSecondsPerKm,
 				calories: record.calories || 0,
 				startTime: record.startTime,
 				endTime: record.endTime,
@@ -142,6 +161,24 @@ export default function SummaryPage() {
 			console.error("加载跑步记录失败", e);
 		}
 		setLoading(false);
+	};
+
+	const deleteRun = async () => {
+		if (!data || !window.confirm("确认永久删除这次跑步及其轨迹数据吗？")) {
+			return;
+		}
+		setDeleting(true);
+		setDeleteError(null);
+		try {
+			const response = await fetch(`/api/runs/${data.id}`, {
+				method: "DELETE",
+			});
+			if (!response.ok) throw new Error("删除失败，请稍后重试");
+			router.replace("/run");
+		} catch (error) {
+			setDeleteError(error instanceof Error ? error.message : "删除失败");
+			setDeleting(false);
+		}
 	};
 
 	if (loading) {
@@ -165,18 +202,46 @@ export default function SummaryPage() {
 			</div>
 		);
 	}
-
-	const statCards = [
-		{ value: formatDuration(data.duration), label: "用时" },
-		{ value: data.avgPace, label: "配速", accent: true },
-		{ value: String(data.calories), label: "卡路里" },
-		{ value: "--", label: "步频" },
-	];
+	const trackSection =
+		data.trackPoints && data.trackPoints.length >= 2 ? (
+			<section className="space-y-2">
+				<h2 className="font-heading text-[15px] font-semibold text-foreground">
+					运动轨迹
+				</h2>
+				<div className="overflow-hidden rounded-xl border border-border">
+					<Suspense
+						fallback={
+							<div className="flex h-52 items-center justify-center gap-2 bg-card text-sm text-muted-foreground">
+								<Loader2 className="size-4 animate-spin" />
+								加载地图...
+							</div>
+						}
+					>
+						<RunMap compact track={data.trackPoints} finished />
+					</Suspense>
+				</div>
+			</section>
+		) : (
+			<section className="space-y-2">
+				<h2 className="font-heading text-[15px] font-semibold text-foreground">
+					运动轨迹
+				</h2>
+				<div className="flex h-32 items-center justify-center gap-2 rounded-xl border border-border bg-card text-sm text-muted-foreground">
+					<MapIcon className="size-4" />
+					无轨迹数据
+				</div>
+			</section>
+		);
 
 	return (
-		<div className="flex flex-1 flex-col gap-5 px-5 pt-4 pb-4">
+		<div className="flex flex-1 flex-col gap-4 px-4 pt-3 pb-6">
 			<div className="flex items-center gap-3">
-				<button type="button" onClick={() => router.push("/run")}>
+				<button
+					type="button"
+					aria-label="返回跑步页"
+					onClick={() => router.push("/run")}
+					className="flex size-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted"
+				>
 					<ArrowLeft className="h-5 w-5 text-foreground" />
 				</button>
 				<h1 className="font-heading text-xl font-semibold text-foreground">
@@ -184,25 +249,42 @@ export default function SummaryPage() {
 				</h1>
 			</div>
 
-			{data.trackPoints && data.trackPoints.length >= 2 ? (
-				<div className="overflow-hidden rounded-xl border border-border">
-					<Suspense
-						fallback={
-							<div className="flex h-48 items-center justify-center gap-2 bg-card text-sm text-muted-foreground">
-								<Loader2 className="size-4 animate-spin" />
-								加载地图...
-							</div>
-						}
+			<Card className="items-center gap-2 border border-primary/20 py-6">
+				<div className="font-mono text-5xl font-bold tracking-[-0.03em] text-primary">
+					{(data.distanceMeters / 1_000).toFixed(2)}
+				</div>
+				<div className="text-sm text-muted-foreground">公里</div>
+				<div className="text-center text-xs text-muted-foreground">
+					{formatRunPeriod(data.startTime, data.endTime)}
+				</div>
+			</Card>
+
+			<div className="grid grid-cols-3 gap-2.5">
+				{[
+					{ label: "用时", value: formatDuration(data.durationSeconds) },
+					{
+						label: "配速 /km",
+						value: formatPaceSeconds(data.paceSecondsPerKm),
+						accent: true,
+					},
+					{ label: "估算千卡", value: String(data.calories) },
+				].map((metric) => (
+					<Card
+						key={metric.label}
+						size="sm"
+						className="items-center gap-0.5 py-3"
 					>
-						<RunMap track={data.trackPoints} finished />
-					</Suspense>
-				</div>
-			) : (
-				<div className="flex h-32 items-center justify-center gap-2 rounded-xl border border-border bg-card text-sm text-muted-foreground">
-					<MapIcon className="size-4" />
-					无轨迹数据
-				</div>
-			)}
+						<span
+							className={`text-lg font-semibold ${metric.accent ? "text-primary" : "text-foreground"}`}
+						>
+							{metric.value}
+						</span>
+						<span className="text-[11px] text-muted-foreground">
+							{metric.label}
+						</span>
+					</Card>
+				))}
+			</div>
 			{(data.correctionPercent ?? 0) > 5 && (
 				<p className="rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground">
 					服务端已根据有效轨迹修正距离，调整幅度为
@@ -210,111 +292,96 @@ export default function SummaryPage() {
 				</p>
 			)}
 
-			<Card className="items-center gap-2 border border-primary/20 py-6 shadow-[0_0_40px_hsl(22_100%_56%/0.08)]">
-				<div className="font-mono text-5xl font-bold tracking-tighter text-primary">
-					{data.distance}
-				</div>
-				<div className="text-sm text-muted-foreground">公里</div>
-				<div className="text-[13px] text-muted-foreground">
-					{formatDate(data.startTime)} — {formatDate(data.endTime)}
-				</div>
-			</Card>
-
-			<div className="flex gap-2.5">
-				{statCards.map((d) => (
-					<Card
-						key={d.label}
-						size="sm"
-						className="flex-1 items-center gap-0.5 py-3"
-					>
-						<span
-							className={`text-lg font-semibold ${
-								d.accent ? "text-primary" : "text-foreground"
-							}`}
-						>
-							{d.value}
-						</span>
-						<span className="text-[11px] text-muted-foreground">{d.label}</span>
-					</Card>
-				))}
-			</div>
-
 			{data.splits && data.splits.length > 0 && (
 				<>
 					<Card className="gap-3 p-4">
 						<div className="flex items-center justify-between">
-							<span className="font-heading text-[15px] font-semibold text-foreground">
+							<h2 className="font-heading text-[15px] font-semibold text-foreground">
 								配速分析
-							</span>
+							</h2>
 							<span className="text-xs text-muted-foreground">每公里</span>
 						</div>
-						<div className="flex items-end justify-between gap-3">
-							{data.splits.map((d) => (
-								<div
-									key={d.km}
-									className="flex flex-1 flex-col items-center gap-1"
-								>
-									<span className="text-[9px] text-muted-foreground">
-										{d.pace}
-									</span>
+						<div className="overflow-x-auto pb-1">
+							<div className="flex min-w-max items-end gap-3">
+								{data.splits.map((split) => (
 									<div
-										className={`w-7 rounded-md ${d.barColor}`}
-										style={{ height: d.barH * 0.8 }}
-									/>
-									<span className="text-[10px] text-muted-foreground">
-										{d.km}
-									</span>
-								</div>
-							))}
-						</div>
-					</Card>
-
-					<div>
-						<h2 className="mb-2 font-heading text-[15px] font-semibold text-foreground">
-							分段详情
-						</h2>
-						<div className="overflow-hidden rounded-xl border border-border bg-card">
-							<div className="flex gap-2 px-3.5 py-2.5">
-								{["公里", "配速", "用时"].map((h) => (
-									<div
-										key={h}
-										className="flex-1 text-center text-[11px] font-semibold text-muted-foreground"
+										key={`chart-${split.km}-${split.distanceMeters}`}
+										className="flex w-11 shrink-0 flex-col items-center gap-1"
 									>
-										{h}
+										<span className="text-[9px] text-muted-foreground">
+											{formatPaceSeconds(split.paceSecondsPerKm)}
+										</span>
+										<div
+											className="w-7 rounded-md bg-primary"
+											style={{ height: split.barHeight }}
+										/>
+										<span className="text-[10px] text-muted-foreground">
+											{split.isPartial ? "尾" : split.km}
+										</span>
 									</div>
 								))}
 							</div>
-							{data.splits.map((row, i) => (
+						</div>
+					</Card>
+
+					<section className="space-y-2">
+						<h2 className="font-heading text-[15px] font-semibold text-foreground">
+							分段详情
+						</h2>
+						<div className="overflow-hidden rounded-xl border border-border bg-card">
+							<div className="grid grid-cols-3 px-4 py-2.5 text-center text-[11px] font-semibold text-muted-foreground">
+								<span>公里</span>
+								<span>配速</span>
+								<span>用时</span>
+							</div>
+							{data.splits.map((split) => (
 								<div
-									key={row.km}
-									className={`flex gap-2 px-3.5 py-2.5 ${
-										i < data.splits!.length - 1 ? "border-t border-border" : ""
-									}`}
+									key={`row-${split.km}-${split.distanceMeters}`}
+									className="grid grid-cols-3 items-center border-t border-border px-4 py-2.5 text-center text-[13px] text-foreground"
 								>
-									<div className="flex-1 text-center text-[13px] text-foreground">
-										{row.km}
+									<div>
+										<p>{split.isPartial ? "最后" : split.km}</p>
+										{split.isPartial ? (
+											<p className="text-[10px] text-muted-foreground">
+												{(split.distanceMeters / 1_000).toFixed(2)} km
+											</p>
+										) : null}
 									</div>
-									<div className="flex-1 text-center text-[13px] text-foreground">
-										{row.pace}
-									</div>
-									<div className="flex-1 text-center text-[13px] text-foreground">
-										{formatDuration(row.duration)}
-									</div>
+									<span>{formatPaceSeconds(split.paceSecondsPerKm)}</span>
+									<span>{formatDuration(split.durationSeconds)}</span>
 								</div>
 							))}
 						</div>
-					</div>
+					</section>
 				</>
 			)}
 
-			<div className="flex justify-center">
+			{trackSection}
+
+			<div className="space-y-2 pt-1">
 				<Link
 					href="/run"
-					className="w-full max-w-xs rounded-lg bg-primary py-3 text-center text-sm font-semibold text-white"
+					className="block w-full rounded-lg bg-primary py-3 text-center text-sm font-semibold text-primary-foreground"
 				>
-					返回首页
+					返回跑步页
 				</Link>
+				<button
+					type="button"
+					onClick={deleteRun}
+					disabled={deleting}
+					className="flex w-full items-center justify-center gap-2 rounded-lg py-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
+				>
+					{deleting ? (
+						<Loader2 className="size-4 animate-spin" />
+					) : (
+						<Trash2 className="size-4" />
+					)}
+					{deleting ? "删除中..." : "删除本次跑步"}
+				</button>
 			</div>
+			{deleteError && (
+				<p className="text-center text-sm text-destructive">{deleteError}</p>
+			)}
 		</div>
 	);
 }
