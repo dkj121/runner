@@ -65,4 +65,4 @@ next-env.d.ts
 !.vscode/tasks.json
 
 /generated/prisma
-docs/DEVLOG.md
+/docs/
