@@ -35,6 +35,13 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# local development tunnel and HTTPS proxy output
+/.caddy-local.Caddyfile
+/.cloudflared*.log
+/.caddy-local*.log
+/.next-dev*.log
+/..scratchzerotier-dev*.log
+
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
