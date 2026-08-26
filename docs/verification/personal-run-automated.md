@@ -26,7 +26,7 @@ The story asserts one start, pause, resume, stop, Pending Completion transition,
 
 | Risk                                                   | Verification                                                                                   |
 | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| GPS quality control and permission denial              | `src/hooks/use-gps-tracking.test.ts`, `src/hooks/use-run-tracker.test.ts`                     |
+| GPS quality control and permission denial              | `src/hooks/use-gps-tracking.test.ts`, `src/hooks/use-run-tracker.test.ts`                      |
 | Repeated start taps and unresolved session conflict    | `src/hooks/use-run-tracker.test.ts`, `src/app/api/runs/routes.test.ts`                         |
 | Upload failure, lost response, repeated batches, retry | `src/hooks/use-run-tracker.test.ts`, `src/lib/gps-cache.test.ts`                               |
 | Pause-safe segments and no pause connector             | `src/hooks/use-run-tracker.test.ts`, `src/lib/run-timeline.test.ts`                            |

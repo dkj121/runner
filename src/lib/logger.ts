@@ -83,18 +83,19 @@ const baseLoggerOptions: LoggerOptions = {
 
 	// Keep Next.js development logging in-process; pino-pretty's worker path
 	// is not resolvable from the Turbopack runtime on Windows.
-	...(isDevelopment && process.env.PINO_PRETTY === "true" && {
-		transport: {
-			target: "pino-pretty",
-			options: {
-				colorize: true,
-				translateTime: "SYS:standard",
-				ignore: "pid,hostname",
-				singleLine: false,
-				messageFormat: "{levelLabel} - {msg}",
+	...(isDevelopment &&
+		process.env.PINO_PRETTY === "true" && {
+			transport: {
+				target: "pino-pretty",
+				options: {
+					colorize: true,
+					translateTime: "SYS:standard",
+					ignore: "pid,hostname",
+					singleLine: false,
+					messageFormat: "{levelLabel} - {msg}",
+				},
 			},
-		},
-	}),
+		}),
 };
 
 /**
