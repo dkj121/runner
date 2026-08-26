@@ -1,0 +1,73 @@
+@baseUrl = http://localhost:3000
+@sessionCookie = better-auth.session_token=replace-with-a-valid-session-cookie
+@start = 1787490000000
+
+### 创建 Personal Run（需要已登录 Cookie）
+# @name createRun
+POST {{baseUrl}}/api/runs
+Cookie: {{sessionCookie}}
+
+> {% client.global.set("runId", response.body.runId); %}
+
+### 写入 START 事件
+POST {{baseUrl}}/api/runs/{{runId}}/events
+Cookie: {{sessionCookie}}
+Content-Type: application/json
+
+{
+  "events": [
+    { "type": "START", "sequence": 0, "timestamp": {{start}} }
+  ]
+}
+
+### 写入 WGS-84 GPS 点
+POST {{baseUrl}}/api/runs/{{runId}}/points
+Cookie: {{sessionCookie}}
+Content-Type: application/json
+
+{
+  "points": [
+    { "lat": 32.041, "lng": 118.784, "timestamp": 1787490001000, "sequence": 1, "segmentIndex": 0, "accuracy": 5, "altitude": null },
+    { "lat": 32.0411, "lng": 118.7841, "timestamp": 1787490006000, "sequence": 2, "segmentIndex": 0, "accuracy": 5, "altitude": null }
+  ]
+}
+
+### 写入 STOP 事件
+POST {{baseUrl}}/api/runs/{{runId}}/events
+Cookie: {{sessionCookie}}
+Content-Type: application/json
+
+{
+  "events": [
+    { "type": "STOP", "sequence": 3, "timestamp": 1787490011000 }
+  ]
+}
+
+### 冻结为 Pending Completion
+POST {{baseUrl}}/api/runs/{{runId}}/pending-completion
+Cookie: {{sessionCookie}}
+
+### 生成服务端权威 Completed Run
+POST {{baseUrl}}/api/runs/{{runId}}/complete
+Cookie: {{sessionCookie}}
+Content-Type: application/json
+
+{
+  "stopTime": "2026-08-23T13:00:11.000Z",
+  "preview": {
+    "distanceMeters": 15,
+    "durationSeconds": 10
+  }
+}
+
+### 获取 Completed Run（仅 canonical 单位）
+GET {{baseUrl}}/api/runs/{{runId}}
+Cookie: {{sessionCookie}}
+
+### 获取 Completed Run 历史
+GET {{baseUrl}}/api/runs?take=20&skip=0
+Cookie: {{sessionCookie}}
+
+### 永久删除 Completed Run
+DELETE {{baseUrl}}/api/runs/{{runId}}
+Cookie: {{sessionCookie}}

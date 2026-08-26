@@ -1,0 +1,347 @@
+### ============================================
+### Playground API Tests
+### Base URL: http://localhost:3000
+### ============================================
+
+@baseUrl = http://localhost:3000
+@playgroundId =
+@inviteCode =
+
+### ============================================
+### 1. List Playgrounds
+### ============================================
+# @name listPlaygrounds
+GET {{baseUrl}}/api/playgrounds
+Content-Type: application/json
+
+###
+
+### List Playgrounds with Pagination
+GET {{baseUrl}}/api/playgrounds?take=10&skip=0
+Content-Type: application/json
+
+###
+
+### List PUBLIC Playgrounds Only
+GET {{baseUrl}}/api/playgrounds?visibility=PUBLIC
+Content-Type: application/json
+
+###
+
+### List PRIVATE Playgrounds Only
+GET {{baseUrl}}/api/playgrounds?visibility=PRIVATE
+Content-Type: application/json
+
+###
+
+### ============================================
+### 2. Create Playground
+### ============================================
+# @name createPlayground
+POST {{baseUrl}}/api/playgrounds
+Content-Type: application/json
+
+{
+  "name": "晨跑团",
+  "description": "每周三次晨跑，欢迎加入！",
+  "visibility": "PUBLIC",
+  "locationLat": 39.9042,
+  "locationLng": 116.4074,
+  "locationAddr": "北京市天安门广场"
+}
+
+###
+
+### Create Private Playground
+# @name createPrivatePlayground
+POST {{baseUrl}}/api/playgrounds
+Content-Type: application/json
+
+{
+  "name": "公司跑步小组",
+  "description": "公司内部跑步活动",
+  "visibility": "PRIVATE"
+}
+
+###
+
+### Create Minimal Playground (only name required)
+POST {{baseUrl}}/api/playgrounds
+Content-Type: application/json
+
+{
+  "name": "测试域"
+}
+
+###
+
+### ============================================
+### 3. Get Playground Details
+### ============================================
+# @name getPlayground
+GET {{baseUrl}}/api/playgrounds/{{createPlayground.response.body.id}}
+Content-Type: application/json
+
+###
+
+### Get Playground by ID (manual)
+GET {{baseUrl}}/api/playgrounds/{{playgroundId}}
+Content-Type: application/json
+
+###
+
+### ============================================
+### 4. Update Playground (Owner Only)
+### ============================================
+PUT {{baseUrl}}/api/playgrounds/{{createPlayground.response.body.id}}
+Content-Type: application/json
+
+{
+  "name": "晨跑团 2.0",
+  "description": "更新后的描述",
+  "locationAddr": "北京市朝阳公园"
+}
+
+###
+
+### Update Visibility
+PUT {{baseUrl}}/api/playgrounds/{{createPlayground.response.body.id}}
+Content-Type: application/json
+
+{
+  "visibility": "PRIVATE"
+}
+
+###
+
+### Update Location
+PUT {{baseUrl}}/api/playgrounds/{{createPlayground.response.body.id}}
+Content-Type: application/json
+
+{
+  "locationLat": 39.9289,
+  "locationLng": 116.3883,
+  "locationAddr": "北京市西城区故宫博物院"
+}
+
+###
+
+### ============================================
+### 5. Get Members
+### ============================================
+# @name getMembers
+GET {{baseUrl}}/api/playgrounds/{{createPlayground.response.body.id}}/members
+Content-Type: application/json
+
+###
+
+### ============================================
+### 6. Generate Invite Code (Owner Only)
+### ============================================
+# @name generateInviteCode
+POST {{baseUrl}}/api/playgrounds/{{createPlayground.response.body.id}}/invite-codes
+Content-Type: application/json
+
+{
+  "maxUses": 0,
+  "expiresInHours": null
+}
+
+###
+
+### Generate Invite Code with Limits
+# @name generateLimitedInviteCode
+POST {{baseUrl}}/api/playgrounds/{{createPlayground.response.body.id}}/invite-codes
+Content-Type: application/json
+
+{
+  "maxUses": 50,
+  "expiresInHours": 168
+}
+
+###
+
+### Generate Temporary Invite Code (24 hours)
+POST {{baseUrl}}/api/playgrounds/{{createPlayground.response.body.id}}/invite-codes
+Content-Type: application/json
+
+{
+  "maxUses": 10,
+  "expiresInHours": 24
+}
+
+###
+
+### ============================================
+### 7. List Invite Codes (Owner Only)
+### ============================================
+# @name listInviteCodes
+GET {{baseUrl}}/api/playgrounds/{{createPlayground.response.body.id}}/invite-codes
+Content-Type: application/json
+
+###
+
+### ============================================
+### 8. Join Playground
+### ============================================
+# @name joinPlayground
+POST {{baseUrl}}/api/playgrounds/{{createPlayground.response.body.id}}/join
+Content-Type: application/json
+
+{
+  "inviteCode": "{{generateInviteCode.response.body.code}}"
+}
+
+###
+
+### Join with Manual Invite Code
+POST {{baseUrl}}/api/playgrounds/{{playgroundId}}/join
+Content-Type: application/json
+
+{
+  "inviteCode": "{{inviteCode}}"
+}
+
+###
+
+### ============================================
+### 9. Leave Playground
+### ============================================
+POST {{baseUrl}}/api/playgrounds/{{createPlayground.response.body.id}}/leave
+Content-Type: application/json
+
+###
+
+### ============================================
+### 10. Get Leaderboard
+### ============================================
+# @name getLeaderboard
+GET {{baseUrl}}/api/playgrounds/{{createPlayground.response.body.id}}/leaderboard
+Content-Type: application/json
+
+###
+
+### ============================================
+### 11. Delete Playground (Owner Only)
+### ============================================
+DELETE {{baseUrl}}/api/playgrounds/{{createPlayground.response.body.id}}
+Content-Type: application/json
+
+###
+
+### ============================================
+### Error Cases
+### ============================================
+
+### Create Playground without Name (should fail)
+POST {{baseUrl}}/api/playgrounds
+Content-Type: application/json
+
+{
+  "description": "没有名字"
+}
+
+###
+
+### Get Non-existent Playground (should return 404)
+GET {{baseUrl}}/api/playgrounds/non-existent-id
+Content-Type: application/json
+
+###
+
+### Join with Invalid Invite Code (should fail)
+POST {{baseUrl}}/api/playgrounds/{{createPlayground.response.body.id}}/join
+Content-Type: application/json
+
+{
+  "inviteCode": "INVALID"
+}
+
+###
+
+### Update Playground as Non-Owner (should return 403)
+PUT {{baseUrl}}/api/playgrounds/{{playgroundId}}
+Content-Type: application/json
+
+{
+  "name": "Unauthorized Update"
+}
+
+###
+
+### Delete Playground as Non-Owner (should return 403)
+DELETE {{baseUrl}}/api/playgrounds/{{playgroundId}}
+Content-Type: application/json
+
+###
+
+### ============================================
+### Complete Test Flow
+### ============================================
+
+### Step 1: Create a new playground
+# @name flowCreatePlayground
+POST {{baseUrl}}/api/playgrounds
+Content-Type: application/json
+
+{
+  "name": "完整测试流程",
+  "description": "用于测试完整流程的域",
+  "visibility": "PUBLIC",
+  "locationAddr": "测试地点"
+}
+
+###
+
+### Step 2: Generate invite code
+# @name flowGenerateCode
+POST {{baseUrl}}/api/playgrounds/{{flowCreatePlayground.response.body.id}}/invite-codes
+Content-Type: application/json
+
+{
+  "maxUses": 5,
+  "expiresInHours": 72
+}
+
+###
+
+### Step 3: Get playground details
+GET {{baseUrl}}/api/playgrounds/{{flowCreatePlayground.response.body.id}}
+Content-Type: application/json
+
+###
+
+### Step 4: List all invite codes
+GET {{baseUrl}}/api/playgrounds/{{flowCreatePlayground.response.body.id}}/invite-codes
+Content-Type: application/json
+
+###
+
+### Step 5: Get members list
+GET {{baseUrl}}/api/playgrounds/{{flowCreatePlayground.response.body.id}}/members
+Content-Type: application/json
+
+###
+
+### Step 6: Update playground info
+PUT {{baseUrl}}/api/playgrounds/{{flowCreatePlayground.response.body.id}}
+Content-Type: application/json
+
+{
+  "name": "完整测试流程 (已更新)",
+  "description": "描述已更新"
+}
+
+###
+
+### Step 7: Get leaderboard
+GET {{baseUrl}}/api/playgrounds/{{flowCreatePlayground.response.body.id}}/leaderboard
+Content-Type: application/json
+
+###
+
+### Step 8: Clean up - Delete playground
+DELETE {{baseUrl}}/api/playgrounds/{{flowCreatePlayground.response.body.id}}
+Content-Type: application/json
+
+###
