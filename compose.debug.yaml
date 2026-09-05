@@ -1,12 +1,76 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: runner-redis-debug
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data_debug:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - runner-network-debug
+
   runner:
-    image: runner
+    image: runner-debug
+    container_name: runner-app-debug
     build:
       context: .
       dockerfile: ./Dockerfile
+      target: deps
     environment:
       NODE_ENV: development
+      # Database
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_PORT: ${MYSQL_PORT:-3306}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_NAME: ${MYSQL_NAME}
+      MYSQL_URL: ${MYSQL_URL}
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-runner_redis_pass}
+      REDIS_DB: ${REDIS_DB:-0}
+      # Auth
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      # Email
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      # Amap
+      NEXT_PUBLIC_AMAP_KEY: ${NEXT_PUBLIC_AMAP_KEY}
+      NEXT_PUBLIC_AMAP_SECURITY_CODE: ${NEXT_PUBLIC_AMAP_SECURITY_CODE}
     ports:
-      - 3000:3000
-      - 9229:9229
-    command: ["node", "--inspect=0.0.0.0:9229", "index.js"]
+      - "3000:3000"
+      - "9229:9229"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    command:
+      [
+        "node",
+        "--inspect=0.0.0.0:9229",
+        "node_modules/.bin/next",
+        "dev",
+        "--turbopack",
+      ]
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - runner-network-debug
+
+volumes:
+  redis_data_debug:
+    driver: local
+
+networks:
+  runner-network-debug:
+    driver: bridge
