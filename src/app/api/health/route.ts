@@ -30,10 +30,17 @@ export async function GET() {
 		);
 	} catch (error) {
 		// Log detailed error server-side only
-		logger.error("Health check failed", {
-			error: error instanceof Error ? error.message : "Unknown error",
-			stack: error instanceof Error ? error.stack : undefined,
-		});
+		if (error instanceof Error) {
+			logger.error(
+				{
+					error: error.message,
+					stack: error.stack,
+				},
+				"Health check failed",
+			);
+		} else {
+			logger.error({ error: String(error) }, "Health check failed");
+		}
 
 		// Return generic error to client
 		return NextResponse.json(
