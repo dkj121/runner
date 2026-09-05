@@ -44,6 +44,7 @@ NEXT_PUBLIC_AMAP_SECURITY_CODE=your_security_code
 ```
 
 **重要安全提示**：
+
 - `REDIS_PASSWORD` 必须显式设置，不接受空值
 - 在生产环境中使用强密码（至少 16 个随机字符）
 - 切勿在版本控制中提交 `.env` 文件
@@ -373,19 +374,19 @@ docker system prune -a
 
 ### 环境变量完整列表
 
-| 变量                             | 必需 | 默认值                | 说明                     |
-| -------------------------------- | ---- | --------------------- | ------------------------ |
-| `MYSQL_HOST`                     | ✓    | -                     | MySQL 主机地址           |
-| `MYSQL_PORT`                     | ✗    | 3306                  | MySQL 端口               |
-| `MYSQL_USER`                     | ✓    | -                     | MySQL 用户名             |
-| `MYSQL_PASSWORD`                 | ✓    | -                     | MySQL 密码               |
-| `MYSQL_NAME`                     | ✓    | -                     | 数据库名                 |
-| `MYSQL_URL`                      | ✓    | -                     | Prisma 连接字符串        |
-| `REDIS_PASSWORD`                 | ✓    | -                     | Redis 密码（必须显式设置）|
-| `REDIS_PORT`                     | ✗    | 6379                  | Redis 端口               |
-| `REDIS_DB`                       | ✗    | 0                     | Redis 数据库索引         |
-| `BETTER_AUTH_SECRET`             | ✓    | -                     | Auth 签名密钥（≥32字符） |
-| `BETTER_AUTH_URL`                | ✗    | http://localhost:3000 | Auth 回调 URL            |
-| `RESEND_API_KEY`                 | ✓    | -                     | Resend API 密钥          |
-| `NEXT_PUBLIC_AMAP_KEY`           | ✓    | -                     | 高德地图 Key             |
-| `NEXT_PUBLIC_AMAP_SECURITY_CODE` | ✓    | -                     | 高德安全密钥             |
+| 变量                             | 必需 | 默认值                | 说明                       |
+| -------------------------------- | ---- | --------------------- | -------------------------- |
+| `MYSQL_HOST`                     | ✓    | -                     | MySQL 主机地址             |
+| `MYSQL_PORT`                     | ✗    | 3306                  | MySQL 端口                 |
+| `MYSQL_USER`                     | ✓    | -                     | MySQL 用户名               |
+| `MYSQL_PASSWORD`                 | ✓    | -                     | MySQL 密码                 |
+| `MYSQL_NAME`                     | ✓    | -                     | 数据库名                   |
+| `MYSQL_URL`                      | ✓    | -                     | Prisma 连接字符串          |
+| `REDIS_PASSWORD`                 | ✓    | -                     | Redis 密码（必须显式设置） |
+| `REDIS_PORT`                     | ✗    | 6379                  | Redis 端口                 |
+| `REDIS_DB`                       | ✗    | 0                     | Redis 数据库索引           |
+| `BETTER_AUTH_SECRET`             | ✓    | -                     | Auth 签名密钥（≥32字符）   |
+| `BETTER_AUTH_URL`                | ✗    | http://localhost:3000 | Auth 回调 URL              |
+| `RESEND_API_KEY`                 | ✓    | -                     | Resend API 密钥            |
+| `NEXT_PUBLIC_AMAP_KEY`           | ✓    | -                     | 高德地图 Key               |
+| `NEXT_PUBLIC_AMAP_SECURITY_CODE` | ✓    | -                     | 高德安全密钥               |
