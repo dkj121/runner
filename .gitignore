@@ -21,6 +21,7 @@ junit.xml
 # next.js
 /.next/
 /out/
+.turbo
 
 # production
 /build
@@ -50,7 +51,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-#Windsurf
+# Windsurf
 .windsurfrules
 .ace-tool/
 
@@ -64,5 +65,11 @@ next-env.d.ts
 !.vscode/launch.json
 !.vscode/tasks.json
 
+# Prisma
 /generated/prisma
-/docs/
+
+# Docker
+docker-compose.override.yml
+.env.local
+.env.*.local
+
